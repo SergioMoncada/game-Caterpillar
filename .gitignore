@@ -38,3 +38,6 @@ Thumbs.db
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
+
+# ---- Documentos comerciales (no se suben al repo publico) ----
+Cotizacion_*
