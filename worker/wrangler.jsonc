@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "carro-game-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // SUPABASE_URL y ALLOWED_ORIGINS son publicas y viven aqui.
+  // SUPABASE_SERVICE_ROLE_KEY es secreta: se sube con
+  //   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+  "vars": {
+    "SUPABASE_URL": "https://TU-PROYECTO.supabase.co",
+    "ALLOWED_ORIGINS": "http://localhost:5173,https://TU-PROYECTO.pages.dev"
+  }
+}
