@@ -1,4 +1,6 @@
-const API_BASE = "http://127.0.0.1:8000/api/scores";
+// En produccion se define VITE_API_BASE (ej. https://tu-backend.com/api/scores).
+// Sin esa variable cae al backend local de desarrollo.
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000/api/scores";
 const TIMEOUT_MS = 5000;
 
 export interface StartSessionResponse {
