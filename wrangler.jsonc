@@ -14,9 +14,7 @@
     "run_worker_first": ["/api/*"]
   },
 
-  // La URL del proyecto Supabase es publica.
-  // La clave secreta NO va aqui: se configura en el panel como secreto SUPABASE_SECRET_KEY.
-  "vars": {
-    "SUPABASE_URL": "https://befgnmxgmoypptbxcueh.supabase.co"
-  }
+  // SUPABASE_URL (texto) y SUPABASE_SECRET_KEY (secreto) se configuran en el panel:
+  // Settings -> Variables and Secrets. keep_vars evita que cada deploy borre la URL.
+  "keep_vars": true
 }

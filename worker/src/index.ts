@@ -80,8 +80,9 @@ export default {
 
     if (request.method !== "POST") return json({ status: "error", reason: "método no permitido" }, 405);
 
-    if (!env.SUPABASE_SECRET_KEY) {
-      console.error("Falta el secreto SUPABASE_SECRET_KEY en la configuracion del Worker");
+    const missing = (["SUPABASE_URL", "SUPABASE_SECRET_KEY"] as const).filter((name) => !env[name]);
+    if (missing.length > 0) {
+      console.error(`Faltan variables del Worker: ${missing.join(", ")}`);
       return json({ status: "error", reason: "servidor sin configurar" }, 500);
     }
 

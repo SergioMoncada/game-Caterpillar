@@ -12,6 +12,7 @@ carro-game/
 ├── frontend/         # juego Phaser (TypeScript + Vite), se compila a frontend/dist
 │   └── src/game/     # escenas, config, texturas, tema y UI
 ├── worker/src/       # API: index.ts (rutas), anticheat.ts, supabase.ts
+├── supabase/         # schema.sql: tablas, permisos y RLS
 ├── backend/          # API Django original (referencia, ya no se despliega)
 └── docs/             # especificaciones de assets
 ```
@@ -47,13 +48,14 @@ Configuracion en *Workers & Pages → game-caterpillar → Settings → Build*:
 | Root directory | *(vacio)* |
 | Production branch | `main` |
 
-Secreto en *Settings → Variables and Secrets*:
+Variables en *Settings → Variables and Secrets*:
 
 | Nombre | Tipo | Valor |
 | --- | --- | --- |
+| `SUPABASE_URL` | Text | `https://<proyecto>.supabase.co` |
 | `SUPABASE_SECRET_KEY` | Secret | Clave `sb_secret_...` de Supabase |
 
-`SUPABASE_URL` ya esta en `wrangler.jsonc` (es publica).
+`keep_vars` en `wrangler.jsonc` evita que cada deploy borre estas variables.
 
 > La clave secreta salta las politicas RLS de Supabase: vive solo en el Worker y nunca llega al
 > navegador. Por eso el anti-trampas corre en el servidor.
@@ -67,18 +69,16 @@ Secreto en *Settings → Variables and Secrets*:
 
 ## Base de datos
 
-Las tablas son las que creó Django y se siguen usando tal cual:
+Para un proyecto de Supabase nuevo, ejecuta `supabase/schema.sql` en el SQL Editor. Crea las
+tablas con el mismo esquema que usaba Django:
 
 - `scores_player` — `id`, `email` (único), `total_coins`, `best_score`, `created_at`
 - `scores_gamesession` — `id`, `player_id`, `started_at`, `ended_at`, `coins_reported`,
   `score_reported`, `is_valid`, `rejection_reason`
 
-Ambas deben tener RLS activado sin politicas: asi solo el Worker (clave secreta) puede leer y escribir.
-
-```sql
-alter table public.scores_player enable row level security;
-alter table public.scores_gamesession enable row level security;
-```
+El script activa RLS sin politicas y concede permisos solo a `service_role`: el Worker (clave
+secreta) lee y escribe; con la clave publica no se puede leer ni modificar nada. Desde mayo de 2026
+Supabase no concede permisos automaticos en proyectos nuevos, por eso el script los declara.
 
 ## Anti-trampas
 
