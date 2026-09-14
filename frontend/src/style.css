@@ -1,0 +1,67 @@
+/* Estilos de la página que contiene el juego (el juego en sí se dibuja en el canvas de Phaser) */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #0a0a12;
+  overflow: hidden;
+}
+
+/* Phaser centra el canvas (Scale.CENTER_BOTH). No usar flex/padding aquí:
+   desalinearía el contenedor DOM (input de correo) respecto al canvas. */
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#app canvas {
+  image-rendering: pixelated; /* mantiene el look pixel-art al escalar */
+  transition: box-shadow 0.3s;
+}
+
+/* ── Input de correo del menú (mockup: input.email) ── */
+.arcade-email {
+  width: 220px;
+  padding: 12px 10px;
+  background: #0a0a12;
+  border: 3px solid #ffcd11;
+  border-radius: 0;
+  color: #fff;
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+  outline: none;
+}
+
+.arcade-email::placeholder {
+  color: #6a5a2a;
+}
+
+.arcade-email:focus {
+  border-color: #ff7a1a;
+  box-shadow: 0 0 12px rgba(255, 122, 26, 0.6);
+}
+
+.arcade-email.invalid {
+  border-color: #d8202f;
+  box-shadow: 0 0 12px rgba(216, 32, 47, 0.6);
+}
+
+.arcade-email.shake {
+  animation: shake 0.3s steps(6);
+}
+
+@keyframes shake {
+  0%, 100% { translate: 0 0; }
+  20% { translate: -4px 0; }
+  40% { translate: 4px 0; }
+  60% { translate: -3px 0; }
+  80% { translate: 3px 0; }
+}
