@@ -1,3 +1,0 @@
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
-ALLOWED_ORIGINS=http://localhost:5173

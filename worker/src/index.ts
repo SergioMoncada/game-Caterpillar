@@ -1,6 +1,7 @@
 /**
- * API de puntajes del juego. Reemplaza a backend/scores/views.py.
- * Rutas (mismas que consume el frontend):
+ * Worker del juego. Reemplaza a backend/scores/views.py.
+ * Los archivos del juego (frontend/dist) los sirve Cloudflare directamente;
+ * este codigo solo corre para las rutas /api/* (ver run_worker_first en wrangler.jsonc):
  *   POST /api/scores/start-session/
  *   POST /api/scores/submit-result/
  */
@@ -8,28 +9,15 @@ import { Supabase } from "./supabase";
 import { validateSession } from "./anticheat";
 
 interface Env {
+  ASSETS: Fetcher;
   SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
-  ALLOWED_ORIGINS: string;
+  SUPABASE_SECRET_KEY: string;
 }
 
-function corsHeaders(request: Request, env: Env): Record<string, string> {
-  const allowed = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
-  const origin = request.headers.get("Origin") ?? "";
-  const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-    Vary: "Origin",
-  };
-  if (allowed.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
-  return headers;
-}
-
-function json(body: unknown, status: number, cors: Record<string, string>): Response {
+function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", ...cors },
+    headers: { "Content-Type": "application/json" },
   });
 }
 
@@ -39,9 +27,9 @@ function toInt(value: unknown): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-async function startSession(body: any, db: Supabase, cors: Record<string, string>) {
+async function startSession(body: any, db: Supabase) {
   const email = typeof body.email === "string" ? body.email.trim() : "";
-  if (!email) return json({ status: "error", reason: "email requerido" }, 400, cors);
+  if (!email) return json({ status: "error", reason: "email requerido" }, 400);
 
   const player = await db.getOrCreatePlayer(email);
   const session = await db.createSession(player.id);
@@ -49,13 +37,12 @@ async function startSession(body: any, db: Supabase, cors: Record<string, string
   return json(
     { session_id: session.id, started_at: session.started_at, best_score: player.best_score },
     200,
-    cors,
   );
 }
 
-async function submitResult(body: any, db: Supabase, cors: Record<string, string>) {
+async function submitResult(body: any, db: Supabase) {
   const session = await db.getSession(toInt(body.session_id));
-  if (!session) return json({ status: "error", reason: "sesión no encontrada" }, 404, cors);
+  if (!session) return json({ status: "error", reason: "sesión no encontrada" }, 404);
 
   const coins = toInt(body.coins);
   const score = toInt(body.score);
@@ -69,10 +56,10 @@ async function submitResult(body: any, db: Supabase, cors: Record<string, string
     rejection_reason: reason,
   });
 
-  if (!isValid) return json({ status: "rejected", reason }, 400, cors);
+  if (!isValid) return json({ status: "rejected", reason }, 400);
 
   const player = await db.getPlayer(session.player_id);
-  if (!player) return json({ status: "error", reason: "jugador no encontrado" }, 404, cors);
+  if (!player) return json({ status: "error", reason: "jugador no encontrado" }, 404);
 
   // Se guarda el mejor resultado, no la suma (igual que en views.py).
   const totalCoins = Math.max(player.total_coins, coins);
@@ -81,39 +68,45 @@ async function submitResult(body: any, db: Supabase, cors: Record<string, string
     best_score: Math.max(player.best_score, score),
   });
 
-  return json({ status: "ok", total_coins: totalCoins }, 200, cors);
+  return json({ status: "ok", total_coins: totalCoins }, 200);
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const cors = corsHeaders(request, env);
+    const url = new URL(request.url);
 
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method !== "POST") return json({ status: "error", reason: "método no permitido" }, 405, cors);
+    // Cualquier ruta fuera de la API se resuelve con los archivos del juego.
+    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
-    const path = new URL(request.url).pathname.replace(/\/+$/, "");
+    if (request.method !== "POST") return json({ status: "error", reason: "método no permitido" }, 405);
+
+    if (!env.SUPABASE_SECRET_KEY) {
+      console.error("Falta el secreto SUPABASE_SECRET_KEY en la configuracion del Worker");
+      return json({ status: "error", reason: "servidor sin configurar" }, 500);
+    }
 
     let body: any;
     try {
       body = await request.json();
     } catch {
-      return json({ status: "error", reason: "JSON inválido" }, 400, cors);
+      return json({ status: "error", reason: "JSON inválido" }, 400);
     }
 
-    const db = new Supabase(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+    const db = new Supabase(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY);
+    const path = url.pathname.replace(/\/+$/, "");
 
     try {
       switch (path) {
         case "/api/scores/start-session":
-          return await startSession(body, db, cors);
+          return await startSession(body, db);
         case "/api/scores/submit-result":
-          return await submitResult(body, db, cors);
+          return await submitResult(body, db);
         default:
-          return json({ status: "error", reason: "ruta no encontrada" }, 404, cors);
+          return json({ status: "error", reason: "ruta no encontrada" }, 404);
       }
     } catch (err) {
       console.error(err); // queda en los logs de Cloudflare, no se expone al cliente
-      return json({ status: "error", reason: "error interno" }, 500, cors);
+      return json({ status: "error", reason: "error interno" }, 500);
     }
   },
 } satisfies ExportedHandler<Env>;

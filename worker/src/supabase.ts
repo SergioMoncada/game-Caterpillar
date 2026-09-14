@@ -22,11 +22,11 @@ export class Supabase {
   private readonly base: string;
   private readonly headers: Record<string, string>;
 
-  constructor(url: string, serviceRoleKey: string) {
+  constructor(url: string, secretKey: string) {
     this.base = `${url.replace(/\/+$/, "")}/rest/v1`;
+    // Las claves nuevas (sb_secret_...) van solo en `apikey`, nunca como Authorization: Bearer.
     this.headers = {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: secretKey,
       "Content-Type": "application/json",
     };
   }

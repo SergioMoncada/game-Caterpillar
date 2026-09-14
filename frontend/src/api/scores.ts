@@ -1,6 +1,6 @@
-// En produccion se define VITE_API_BASE (ej. https://tu-backend.com/api/scores).
-// Sin esa variable cae al backend local de desarrollo.
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000/api/scores";
+// El juego y la API viven en el mismo dominio (un solo Worker), asi que basta la ruta relativa.
+// En desarrollo, Vite reenvia /api al Worker local (ver vite.config.ts).
+const API_BASE = "/api/scores";
 const TIMEOUT_MS = 5000;
 
 export interface StartSessionResponse {
