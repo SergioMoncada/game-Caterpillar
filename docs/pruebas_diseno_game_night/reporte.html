@@ -226,6 +226,8 @@
     gap: 12px;
   }
   .panel ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .panel figcaption { color: var(--ink-soft); }
+  .panel[style] figcaption { color: #c9c5d6; }
 
   footer { margin-top: 40px; color: var(--ink-soft); font-size: 13px; }
 
@@ -541,6 +543,21 @@
   <h2>Referencia: las 8 ciudades con la paleta enviada</h2>
   <div class="panel" style="background:var(--shot-bg)">
     <figure><img src="img/08_paleta_ciudades.png" alt="Las ocho ciudades con su cielo y silueta según la paleta enviada" loading="lazy"><figcaption>Cielo arriba → cielo abajo, silueta teñida con el tercer color</figcaption></figure>
+  </div>
+
+  <h2>Correcciones aplicadas en código</h2>
+  <div class="panel">
+    <p style="margin:0;max-width:72ch">Sin tocar los archivos entregados, se ajustó lo que depende del juego para que el escenario se funda con el ambiente:</p>
+    <ul>
+      <li><b>Cielo plano y oscuro:</b> es la noche del juego con apenas un 22 % del color de la ciudad, sin degradados. La silueta usa el color de la ciudad aclarado y un poco transparente, así que se lee sin recortarse (mitiga #1).</li>
+      <li><b>Neblina escalonada:</b> tres bandas planas bajo el horizonte unen el cielo con la carretera y las paredes, y los obstáculos salen de ella.</li>
+      <li><b>Un solo paso de nivel:</b> la ciudad actual se agranda y se desvanece (la dejamos atrás), el cielo destella y cambia de color, y la siguiente ciudad aparece a lo lejos y empieza a acercarse.</li>
+      <li><b>Nombre de la ciudad sobre el horizonte:</b> reemplaza el banner en caja que tapaba la silueta (corrige #8).</li>
+      <li><b>Menú sin sol:</b> en su lugar va el logo CAT oficial a color (placa amarilla, letras negras), enmarcado como los botones arcade y con un halo escalonado (mitiga #2 mientras llega el logo blanco transparente).</li>
+    </ul>
+    <figure><img src="img/10_correccion_pantallas.png" alt="Menú con el logo CAT en placa, inicio del nivel con el nombre sobre el horizonte y juego en curso" loading="lazy"><figcaption>Menú · inicio del nivel · juego en curso</figcaption></figure>
+    <figure><img src="img/12_correccion_transicion.png" alt="Cinco momentos del paso de Bogotá a Cali" loading="lazy"><figcaption>Paso de Bogotá a Cali: destello → Bogotá pasa de largo → Cali aparece lejos → se acerca</figcaption></figure>
+    <figure><img src="img/11_correccion_ciudades.png" alt="Las ocho ciudades con el nuevo cielo plano" loading="lazy"><figcaption>Las 8 ciudades con el nuevo tratamiento (orden: Bogotá, Cali / Medellín, Ibagué / Villavicencio, Valledupar / Montería, Neiva)</figcaption></figure>
   </div>
 
   <h2>Archivos que faltan</h2>

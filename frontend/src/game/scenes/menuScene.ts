@@ -8,6 +8,7 @@ const HORIZON_Y = 230;
 const GRID_COLOR = 0x2a0a3d;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HINT_TEXT = "TOCA IZQ / DER PARA MOVERTE";
+const LOGO_RATIO = 720 / 535.53; // viewBox de logo_cat_color.svg
 
 export default class MenuScene extends Phaser.Scene {
   private emailInputEl!: HTMLInputElement;
@@ -35,14 +36,12 @@ export default class MenuScene extends Phaser.Scene {
     // ── Fondo synthwave ──
     this.add.image(0, 0, "bg-menu").setOrigin(0, 0);
     this.add.image(0, 0, "vignette-soft").setOrigin(0, 0);
-    this.add.image(GAME_WIDTH / 2, 40 + 80, "sun");
     this.grid = this.add.graphics();
     this.drawHorizon();
 
     addCautionStrips(this, "caution-yellow");
 
-    // PRUEBA DE DISEÑO: logo CAT (blanco) junto al título, sobre el sol
-    this.add.image(GAME_WIDTH / 2, 195, "logo-cat-blanco").setDisplaySize(96, 71).setDepth(3);
+    this.buildLogoPlate();
 
     // ── Título con doble sombra + parpadeo ──
     const title = layeredText(
@@ -92,6 +91,24 @@ export default class MenuScene extends Phaser.Scene {
     this.tweens.add({ targets: jeep, y: jeep.y - 3, duration: 500, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
+  }
+
+  /**
+   * Logo CAT en el lugar del sol. Se usa la versión a color (placa amarilla, letras negras) tal cual,
+   * enmarcada como los botones arcade: borde negro, "profundidad" amarilla oscura y un halo escalonado plano.
+   */
+  private buildLogoPlate() {
+    const W = 168, H = Math.round(W / LOGO_RATIO), cx = GAME_WIDTH / 2, cy = 122, DEPTH_PX = 6;
+    const halo = this.add.graphics().setDepth(3);
+    [[36, 0.05], [22, 0.08], [10, 0.14]].forEach(([spread, alpha]) => {
+      halo.fillStyle(COLORS.yellow, alpha).fillRect(cx - W / 2 - spread, cy - H / 2 - spread, W + spread * 2, H + spread * 2 + DEPTH_PX);
+    });
+    const plate = this.add.graphics().setDepth(3);
+    plate.fillStyle(COLORS.yellowDark, 1).fillRect(cx - W / 2 - 3, cy - H / 2 - 3 + DEPTH_PX, W + 6, H + 6);
+    plate.fillStyle(COLORS.black, 1).fillRect(cx - W / 2 - 3, cy - H / 2 - 3, W + 6, H + 6);
+    this.add.image(cx, cy, "logo-cat-color").setDisplaySize(W, H).setDepth(4);
+    // El halo "respira" como el resplandor del sol original
+    this.tweens.add({ targets: halo, alpha: { from: 1, to: 0.6 }, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
   }
 
   update(_time: number, delta: number) {
