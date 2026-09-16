@@ -226,12 +226,12 @@
     <p class="lede">
       Después de probar la primera entrega dentro del juego, pedimos tres piezas nuevas.
       Los bocetos de esta página son pixel art a baja resolución (16 × 16) hechos solo para mostrar la dirección:
-      <b>no son arte final</b>. Las medidas usan unidades de juego (u), exportadas a 3x salvo donde se indique.
+      <b>no son arte final</b>. Las medidas usan unidades de juego (u), exportadas a 3x (1 u = 3 px) salvo donde se indique. <b>Ningún tamaño cambia respecto a la guía v1.1</b>: el detalle en píxeles está en la sección de medidas.
     </p>
     <div class="asks">
-      <div class="ask-card"><span class="k">Pedido A</span><b>Zapato con animación de trote</b><span>Vista desde atrás, 4 cuadros</span></div>
-      <div class="ask-card"><span class="k">Pedido B</span><b>Obstáculos en pixel art sólido</b><span>Mismo estilo que el zapato y la moneda</span></div>
-      <div class="ask-card"><span class="k">Pedido C</span><b>Paredes simples y teñibles</b><span>En gris; el juego las colorea por ciudad</span></div>
+      <div class="ask-card"><span class="k">Pedido A</span><b>Zapato con animación de trote</b><span>4 cuadros de 216 × 216 px · tira de 864 × 216 px</span></div>
+      <div class="ask-card"><span class="k">Pedido B</span><b>Obstáculos en pixel art sólido</b><span>192 × 192 px cada uno · cuadrícula de 32 × 32</span></div>
+      <div class="ask-card"><span class="k">Pedido C</span><b>Paredes simples y teñibles</b><span>Módulo de 120 × 480 px en grises; el juego lo colorea</span></div>
     </div>
   </header>
 
@@ -275,6 +275,7 @@
     <div class="box">
       <h3>Qué pedimos</h3>
       <ul>
+        <li><b>Cuadrícula de 36 × 36 píxeles</b> (1 píxel = 2 u): 216 × 216 px en el juego (6 px por píxel) y 360 × 360 px en el menú (10 px por píxel).</li>
         <li><b>Vista desde atrás o en 3/4 desde atrás</b>: se ve el talón y la suela, porque el zapato avanza hacia la ciudad.</li>
         <li><b>Animación de trote o rebote</b> de 4 cuadros del mismo tamaño, sin espacio entre ellos. Velocidad sugerida: 10 cuadros por segundo.</li>
         <li><b>Contorno claro</b> (blanco o gris) de al menos 2 u, para que no se pierda en el asfalto #26232B.</li>
@@ -339,13 +340,112 @@
     <div class="box">
       <h3>Qué pedimos</h3>
       <ul>
-        <li><b>Un módulo de 40 × 160 u</b> (120 × 480 px) que se repita en vertical sin cortes.</li>
+        <li><b>Un módulo de 40 × 160 u</b> (120 × 480 px; cuadrícula de 20 × 80 si es pixel art) que se repita en vertical sin cortes.</li>
         <li><b>Solo blanco y grises sobre transparente</b>: el juego lo colorea con el color de cada ciudad, así que no hacen falta 8 versiones.</li>
         <li><b>Motivos de Game Night</b> (palos de la baraja, puntos de dado, fichas) pequeños y espaciados, con poco contraste respecto a la base.</li>
         <li><b>Sin texto ni logos</b>, para poder reflejarlo en el lado derecho con un solo archivo.</li>
         <li>Si quieren un logo CAT en la pared, entregarlo aparte (máximo 32 u de ancho) y lo intercalamos cada cierto tramo.</li>
       </ul>
     </div>
+  </div>
+
+  <!-- ─────────── Medidas ─────────── -->
+  <h2>Medidas: todo cabe en lo que ya pedía la guía</h2>
+  <p class="section-sub">
+    Ningún lienzo cambia respecto a <code>Especificaciones_assets_CAT_game.docx</code> v1.1. La pantalla mide 480 × 720 u y
+    <b>1 u = 3 px</b>. Lo único nuevo es la cuadrícula de pixel art: cada píxel del dibujo mide 2 u (el grosor mínimo que ya pedía la guía),
+    así que en el PNG final cada píxel del dibujo se exporta como un bloque de 6 × 6 px.
+  </p>
+  <div class="grid-2">
+    <div class="stage">
+      <h3>Plano de la pantalla a escala (unidades de juego)</h3>
+      <svg viewBox="-70 -14 690 770" role="img" aria-label="Plano a escala de la pantalla de juego con las medidas de cada elemento" style="width:100%;max-width:460px;justify-self:center;font-family:'IBM Plex Mono',monospace">
+        <!-- fondo -->
+        <rect x="0" y="0" width="480" height="720" fill="#26232b"/>
+        <!-- cielo -->
+        <rect x="0" y="0" width="480" height="200" fill="#3a2230"/>
+        <text x="240" y="108" fill="#d9c7d3" font-size="16" text-anchor="middle">silueta de ciudad · 480 × 200 u</text>
+        <text x="240" y="130" fill="#a99aa6" font-size="13" text-anchor="middle">PNG 1920 × 800 px (4x)</text>
+        <!-- esquinas del marcador -->
+        <rect x="0" y="0" width="130" height="48" fill="none" stroke="#ff8593" stroke-width="2" stroke-dasharray="6 4"/>
+        <rect x="350" y="0" width="130" height="48" fill="none" stroke="#ff8593" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="65" y="30" fill="#ff8593" font-size="12" text-anchor="middle">marcador</text>
+        <text x="415" y="30" fill="#ff8593" font-size="12" text-anchor="middle">marcador</text>
+        <!-- paredes -->
+        <rect x="0" y="200" width="40" height="520" fill="#4a3f57"/>
+        <rect x="440" y="200" width="40" height="520" fill="#4a3f57"/>
+        <rect x="0" y="200" width="40" height="160" fill="none" stroke="#ffcd11" stroke-width="3"/>
+        <!-- carriles -->
+        <line x1="173.3" y1="200" x2="173.3" y2="720" stroke="#ffcd11" stroke-width="3" stroke-dasharray="24 24"/>
+        <line x1="306.7" y1="200" x2="306.7" y2="720" stroke="#ffcd11" stroke-width="3" stroke-dasharray="24 24"/>
+        <!-- obstáculo -->
+        <rect x="74.7" y="298" width="64" height="64" fill="#e73e3f" fill-opacity=".35" stroke="#e73e3f" stroke-width="2"/>
+        <text x="106.7" y="386" fill="#ffb3bb" font-size="13" text-anchor="middle">obstáculo</text>
+        <text x="106.7" y="403" fill="#ffb3bb" font-size="13" text-anchor="middle">64 × 64 u</text>
+        <!-- moneda -->
+        <circle cx="373.3" cy="450" r="16" fill="#ffcd11"/>
+        <text x="373.3" y="490" fill="#ffe27a" font-size="13" text-anchor="middle">CATCOIN</text>
+        <text x="373.3" y="507" fill="#ffe27a" font-size="13" text-anchor="middle">32 × 32 u</text>
+        <!-- jugador -->
+        <rect x="204" y="577" width="72" height="72" fill="#ffcd11" fill-opacity=".25" stroke="#ffcd11" stroke-width="2"/>
+        <text x="240" y="672" fill="#ffe27a" font-size="13" text-anchor="middle">zapato · 72 × 72 u</text>
+        <!-- cotas -->
+        <g stroke="#b7b1c9" stroke-width="1.5" fill="none">
+          <line x1="-14" y1="0" x2="-14" y2="200"/><line x1="-20" y1="0" x2="-8" y2="0"/><line x1="-20" y1="200" x2="-8" y2="200"/>
+          <line x1="-14" y1="200" x2="-14" y2="720"/><line x1="-20" y1="720" x2="-8" y2="720"/>
+          <line x1="494" y1="200" x2="494" y2="360"/><line x1="488" y1="200" x2="500" y2="200"/><line x1="488" y1="360" x2="500" y2="360"/>
+          <line x1="0" y1="734" x2="40" y2="734"/><line x1="40" y1="734" x2="173.3" y2="734"/>
+          <line x1="0" y1="728" x2="0" y2="740"/><line x1="40" y1="728" x2="40" y2="740"/><line x1="173.3" y1="728" x2="173.3" y2="740"/><line x1="480" y1="728" x2="480" y2="740"/>
+          <line x1="173.3" y1="734" x2="480" y2="734" stroke-dasharray="4 4"/>
+        </g>
+        <g fill="#d9d5e6" font-size="12">
+          <text x="-20" y="104" text-anchor="end">200 u</text>
+          <text x="-20" y="464" text-anchor="end">520 u</text>
+          <text x="504" y="276">módulo</text>
+          <text x="504" y="292">de pared</text>
+          <text x="504" y="308">40 × 160 u</text>
+          <text x="20" y="752" text-anchor="middle">40</text>
+          <text x="106.7" y="752" text-anchor="middle">carril 133 u</text>
+          <text x="330" y="752" text-anchor="middle">pantalla 480 u</text>
+        </g>
+      </svg>
+      <p class="note">Las esquinas punteadas (130 × 48 u) son del marcador: ahí no debe ir nada importante de la silueta.</p>
+    </div>
+    <div class="box">
+      <h3>Cómo leer la cuadrícula</h3>
+      <div class="why">
+        <p><b>Tamaño en juego ÷ tamaño del píxel del dibujo = cuadrícula.</b> Un obstáculo de 64 u con píxeles de 2 u se dibuja en 32 × 32 píxeles.</p>
+        <p><b>Cuadrícula × píxeles de exportación = PNG final.</b> 32 píxeles × 6 px = 192 px, que es exactamente lo que ya pedía la guía.</p>
+        <p>Así el pixel art queda nítido: cada píxel del dibujo cae en un número entero de píxeles de pantalla, sin bordes borrosos.</p>
+        <p>Los bocetos de esta página usan una cuadrícula más gruesa (16 × 16) solo para ilustrar; el arte final va con la cuadrícula de la tabla.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="box table-wrap" style="margin-top:16px">
+    <table>
+      <thead>
+        <tr>
+          <th>Elemento</th><th>En juego</th><th>Cuadrícula del dibujo</th><th>1 píxel del dibujo</th>
+          <th>PNG final</th><th>Cuadros</th><th>¿Igual a la guía v1.1?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Zapato (juego)</td><td class="num">72 × 72 u</td><td class="num">36 × 36</td><td class="num">2 u = 6 px</td><td class="num">216 × 216 px</td><td class="num">1</td><td>Sí</td></tr>
+        <tr><td>Zapato trotando (juego)</td><td class="num">72 × 72 u c/u</td><td class="num">36 × 36 c/u</td><td class="num">2 u = 6 px</td><td class="num">864 × 216 px</td><td class="num">4 × 216 px</td><td>Sí (la guía la tenía como recomendada)</td></tr>
+        <tr><td>Zapato (menú)</td><td class="num">120 × 120 u</td><td class="num">36 × 36</td><td class="num">10 px</td><td class="num">360 × 360 px</td><td class="num">1</td><td>Sí</td></tr>
+        <tr><td>Zapato trotando (menú)</td><td class="num">120 × 120 u c/u</td><td class="num">36 × 36 c/u</td><td class="num">10 px</td><td class="num">1440 × 360 px</td><td class="num">4 × 360 px</td><td>Nuevo archivo, mismo tamaño de cuadro</td></tr>
+        <tr><td>Obstáculo (cada variante)</td><td class="num">64 × 64 u</td><td class="num">32 × 32</td><td class="num">2 u = 6 px</td><td class="num">192 × 192 px</td><td class="num">1</td><td>Sí</td></tr>
+        <tr><td>Parte sólida del obstáculo</td><td class="num">≥ 45 × 45 u</td><td class="num">≥ 22 × 22</td><td class="num">—</td><td class="num">≥ 134 × 134 px</td><td class="num">—</td><td>Sí (70 % de cada lado de la caja: es el cuadrado con el que el juego calcula el choque)</td></tr>
+        <tr><td>Contorno claro</td><td class="num">2 u</td><td class="num">1 píxel</td><td class="num">2 u = 6 px</td><td class="num">6 px de grosor</td><td class="num">—</td><td>Sí (grosor mínimo)</td></tr>
+        <tr><td>Módulo de pared</td><td class="num">40 × 160 u</td><td class="num">20 × 80</td><td class="num">2 u = 6 px</td><td class="num">120 × 480 px</td><td class="num">1</td><td>Sí (ahora en grises)</td></tr>
+        <tr><td>Motivo dentro de la pared</td><td class="num">≤ 16 × 16 u</td><td class="num">≤ 8 × 8</td><td class="num">2 u = 6 px</td><td class="num">≤ 48 × 48 px</td><td class="num">—</td><td>Nuevo detalle</td></tr>
+        <tr><td>Borde amarillo de la pared</td><td class="num">3 u</td><td class="num">—</td><td class="num">—</td><td class="num">no se entrega</td><td class="num">—</td><td>Lo dibuja el juego</td></tr>
+        <tr><td>Logo para la pared (opcional)</td><td class="num">≤ 32 × 32 u</td><td class="num">≤ 16 × 16</td><td class="num">2 u = 6 px</td><td class="num">≤ 96 × 96 px</td><td class="num">1</td><td>Sí</td></tr>
+        <tr><td>CATCOIN (sin cambios)</td><td class="num">32 × 32 u</td><td class="num">16 × 16</td><td class="num">2 u = 6 px</td><td class="num">96 × 96 px</td><td class="num">1 (giro opcional: 8)</td><td>Sí</td></tr>
+        <tr><td>Silueta de ciudad (sin cambios)</td><td class="num">480 × 200 u</td><td class="num">vectorial</td><td class="num">línea ≥ 2 u = 8 px</td><td class="num">1920 × 800 px (4x)</td><td class="num">1</td><td>Sí</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- ─────────── Entregables ─────────── -->
@@ -355,13 +455,13 @@
     <table>
       <thead><tr><th>Archivo</th><th>Tamaño</th><th>Contenido</th><th>Prioridad</th></tr></thead>
       <tbody>
-        <tr><td class="file">jugador@3x.png</td><td class="num">216 × 216</td><td>Zapato quieto, vista desde atrás</td><td>Obligatorio</td></tr>
-        <tr><td class="file">jugador_trote@3x.png</td><td class="num">864 × 216</td><td>Tira de 4 cuadros de 216 px</td><td>Obligatorio</td></tr>
-        <tr><td class="file">jugador_menu_trote.png</td><td class="num">1440 × 360</td><td>La misma tira, para el menú (4 × 360 px)</td><td>Obligatorio</td></tr>
+        <tr><td class="file">jugador@3x.png</td><td class="num">216 × 216</td><td>Zapato quieto, vista desde atrás · cuadrícula 36 × 36</td><td>Obligatorio</td></tr>
+        <tr><td class="file">jugador_trote@3x.png</td><td class="num">864 × 216</td><td>Tira de 4 cuadros de 216 × 216 px, sin espacio entre ellos</td><td>Obligatorio</td></tr>
+        <tr><td class="file">jugador_menu_trote.png</td><td class="num">1440 × 360</td><td>La misma tira para el menú: 4 cuadros de 360 × 360 px</td><td>Obligatorio</td></tr>
         <tr><td class="file">obstaculo_ajedrez_01@3x.png / _02</td><td class="num">192 × 192</td><td>Peón y torre, cuadrícula de 32 × 32</td><td>Obligatorio</td></tr>
-        <tr><td class="file">obstaculo_dado_01@3x.png / _02</td><td class="num">192 × 192</td><td>Dado con caras 3 y 5</td><td>Obligatorio</td></tr>
-        <tr><td class="file">obstaculo_naipe_01@3x.png / _02<br>o obstaculo_domino_01@3x.png / _02</td><td class="num">192 × 192</td><td>Según lo que confirme el cliente, de pie</td><td>Obligatorio</td></tr>
-        <tr><td class="file">pared@3x.png</td><td class="num">120 × 480</td><td>Módulo repetible, blanco y grises sobre transparente</td><td>Obligatorio</td></tr>
+        <tr><td class="file">obstaculo_dado_01@3x.png / _02</td><td class="num">192 × 192</td><td>Dado con caras 3 y 5 · cuadrícula 32 × 32</td><td>Obligatorio</td></tr>
+        <tr><td class="file">obstaculo_naipe_01@3x.png / _02<br>o obstaculo_domino_01@3x.png / _02</td><td class="num">192 × 192</td><td>Según lo que confirme el cliente, de pie · cuadrícula 32 × 32</td><td>Obligatorio</td></tr>
+        <tr><td class="file">pared@3x.png</td><td class="num">120 × 480</td><td>Módulo repetible, blanco y grises sobre transparente · cuadrícula 20 × 80</td><td>Obligatorio</td></tr>
         <tr><td class="file">pared_logo@3x.png</td><td class="num">≤ 96 × 96</td><td>Logo para intercalar en la pared</td><td>Opcional</td></tr>
       </tbody>
     </table>
