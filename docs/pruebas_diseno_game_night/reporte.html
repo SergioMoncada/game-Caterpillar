@@ -1,0 +1,569 @@
+<title>Revisión assets GAME NIGHT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f3f2f6;
+    --surface: #ffffff;
+    --ink: #1b1a22;
+    --ink-soft: #57546a;
+    --rule: #dddae6;
+    --cat: #ffcd11;
+    --cat-ink: #1a1a1a;
+    --crit: #b8283a;
+    --crit-bg: #fbe7ea;
+    --high: #a65a0b;
+    --high-bg: #fcefdd;
+    --mid: #3f5199;
+    --mid-bg: #e6eaf8;
+    --low: #4f5a4a;
+    --low-bg: #e8ece5;
+    --shot-bg: #26232b;
+    --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #14131a;
+      --surface: #1d1b25;
+      --ink: #ecebf2;
+      --ink-soft: #a9a6bb;
+      --rule: #34313f;
+      --crit: #ff8593;
+      --crit-bg: #3a1a21;
+      --high: #f2b36a;
+      --high-bg: #362614;
+      --mid: #9fb0f2;
+      --mid-bg: #1f2540;
+      --low: #b8c4b0;
+      --low-bg: #242a22;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #14131a;
+    --surface: #1d1b25;
+    --ink: #ecebf2;
+    --ink-soft: #a9a6bb;
+    --rule: #34313f;
+    --crit: #ff8593;
+    --crit-bg: #3a1a21;
+    --high: #f2b36a;
+    --high-bg: #362614;
+    --mid: #9fb0f2;
+    --mid-bg: #1f2540;
+    --low: #b8c4b0;
+    --low-bg: #242a22;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.6 var(--font-body);
+    padding-inline: 20px;
+    padding-block: 0 64px;
+  }
+  .wrap { max-width: 1120px; margin-inline: auto; }
+
+  /* Cabecera: franja de precaución como en las paredes originales del juego */
+  .hazard {
+    height: 10px;
+    margin-inline: -20px;
+    background: repeating-linear-gradient(-45deg, var(--cat) 0 14px, var(--cat-ink) 14px 28px);
+  }
+  header { padding-block: 36px 28px; display: grid; gap: 14px; }
+  .eyebrow {
+    font: 500 12px/1 var(--font-mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h1 {
+    font: 800 clamp(30px, 5vw, 46px)/1.05 var(--font-display);
+    letter-spacing: -.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede { max-width: 68ch; margin: 0; color: var(--ink-soft); }
+  .lede code, p code, li code, td code {
+    font: 13px var(--font-mono);
+    background: var(--rule);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .count {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .count b { font: 800 20px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+
+  .sev-crit { background: var(--crit-bg); color: var(--crit); }
+  .sev-high { background: var(--high-bg); color: var(--high); }
+  .sev-mid  { background: var(--mid-bg);  color: var(--mid); }
+  .sev-low  { background: var(--low-bg);  color: var(--low); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 20px;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .legend span b { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font: 700 13px/1 var(--font-mono);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 44px 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Cada error: texto a la izquierda, evidencia a la derecha */
+  .issues { display: grid; gap: 18px; }
+  .issue {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  .issue-text { padding: 22px 24px; display: grid; gap: 12px; align-content: start; }
+  .issue-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .id { font: 500 13px var(--font-mono); color: var(--ink-soft); }
+  .pill {
+    font: 600 11px/1 var(--font-body);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 999px;
+  }
+  .owner {
+    font: 600 11px/1 var(--font-body);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+  }
+  h3 {
+    font: 700 21px/1.25 var(--font-display);
+    margin: 0;
+    text-wrap: balance;
+  }
+  dl { margin: 0; display: grid; gap: 10px; }
+  dt {
+    font: 600 11px/1 var(--font-body);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 3px;
+  }
+  dd { margin: 0; }
+  dd ul { margin: 0; padding-left: 18px; }
+  .ask {
+    border-left: 3px solid var(--cat);
+    padding: 8px 12px;
+    background: color-mix(in srgb, var(--cat) 10%, var(--surface));
+  }
+
+  .evidence {
+    background: var(--shot-bg);
+    border-left: 1px solid var(--rule);
+    border-radius: 0 6px 6px 0;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .evidence.two { grid-template-columns: 1fr 1fr; }
+  figure { margin: 0; display: grid; gap: 6px; }
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+    image-rendering: auto;
+  }
+  figure img.tall { max-height: 520px; width: auto; max-width: 100%; justify-self: center; }
+  figcaption {
+    font: 12px/1.4 var(--font-mono);
+    color: #c9c5d6;
+  }
+
+  /* Tablas */
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  th { font: 600 11px var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+  td.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); font-size: 13px; }
+  td.bad { color: var(--crit); }
+  .swatch {
+    display: inline-block; width: 12px; height: 12px; border-radius: 2px;
+    vertical-align: -1px; margin-right: 5px; border: 1px solid rgba(0,0,0,.15);
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 20px 24px;
+    display: grid;
+    gap: 12px;
+  }
+  .panel ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+  footer { margin-top: 40px; color: var(--ink-soft); font-size: 13px; }
+
+  @media (max-width: 820px) {
+    .issue { grid-template-columns: 1fr; }
+    .evidence { border-left: 0; border-top: 1px solid var(--rule); border-radius: 0 0 6px 6px; }
+  }
+  @media (max-width: 460px) {
+    .evidence.two { grid-template-columns: 1fr; }
+    .issue-text { padding: 18px; }
+  }
+</style>
+
+<div class="hazard" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Juego arcade CAT · prueba de integración · 16 sep 2026</div>
+    <h1>Revisión de los assets de GAME NIGHT dentro del juego</h1>
+    <p class="lede">
+      Se reemplazaron los gráficos del juego por los archivos de la carpeta compartida <code>GAME NIGHT</code> y se probó en pantalla (480 × 720 u).
+      Cada punto compara lo que se ve en el juego con la guía <code>Especificaciones_assets_CAT_game.docx</code> (v1.1) y dice qué hay que pedir o decidir.
+      Las capturas son del juego corriendo en la rama <code>prueba/disenos-game-night</code>.
+    </p>
+    <div class="summary" aria-label="Resumen por severidad">
+      <span class="count sev-crit"><b>2</b> críticos</span>
+      <span class="count sev-high"><b>2</b> altos</span>
+      <span class="count sev-mid"><b>4</b> medios</span>
+      <span class="count sev-low"><b>3</b> bajos</span>
+    </div>
+    <div class="legend">
+      <span><b>Crítico:</b> no se puede publicar así</span>
+      <span><b>Alto:</b> afecta la jugabilidad o la lectura</span>
+      <span><b>Medio:</b> se nota, pero el juego funciona</span>
+      <span><b>Bajo:</b> formato o datos por aclarar</span>
+    </div>
+  </header>
+
+  <h2>Errores encontrados</h2>
+  <div class="issues">
+
+    <!-- 1 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#1</span>
+          <span class="pill sev-crit">Crítico</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>Cuatro siluetas de ciudad casi no se ven sobre su cielo</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>Con la paleta enviada, el color de la silueta queda casi igual al del cielo en <b>Medellín</b>, <b>Villavicencio</b>, <b>Valledupar</b> y <b>Neiva</b>. Bogotá, Cali, Ibagué y Montería sí se leen.</dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 6: tres colores por ciudad (cielo arriba, cielo abajo y silueta) para que cada nivel se sienta distinto.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Revisar el color de la silueta en esas cuatro ciudades para que contraste con ambos tonos del cielo, y confirmar que el orden de los tres códigos del <code>.txt</code> es cielo arriba, cielo abajo y silueta.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence two">
+        <figure><img src="img/07_ciudad_03_medellin.png" alt="Medellín: silueta rosada sobre cielo rojo a verde, casi invisible" loading="lazy"><figcaption>Medellín · #EB666F sobre #E73E3F→#C4D556</figcaption></figure>
+        <figure><img src="img/07_ciudad_05_villavicencio.png" alt="Villavicencio: silueta roja sobre cielo rosado a naranja" loading="lazy"><figcaption>Villavicencio · #E73E3F sobre #CF4893→#ED713B</figcaption></figure>
+        <figure><img src="img/07_ciudad_06_valledupar.png" alt="Valledupar: silueta rosada sobre cielo azul a naranja" loading="lazy"><figcaption>Valledupar · #CF4893 sobre #3E54A0→#ED713B</figcaption></figure>
+        <figure><img src="img/07_ciudad_08_neiva.png" alt="Neiva: silueta roja sobre cielo naranja a rosado" loading="lazy"><figcaption>Neiva · #E73E3F sobre #ED713B→#CF4893</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#2</span>
+          <span class="pill sev-crit">Crítico</span>
+          <span class="owner">Diseño · Cliente</span>
+        </div>
+        <h3>El logo "blanco" trae un recuadro blanco de fondo</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd><code>logo_cat_blanco.svg</code> es un rectángulo blanco con las letras en negro, y en el menú tapa el sol. <code>logo_cat_color.svg</code> también trae el fondo amarillo incluido.</dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 5.6: versión monocromática blanca para fondos oscuros, con fondo transparente, más las versiones a color y negra, y el PNG de cada una a 720 px.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>El logo en tinta blanca sobre fondo transparente (el oficial de CAT). Faltan también <code>logo_cat_negro.svg</code> y los tres PNG a 720 px.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence two">
+        <figure><img src="img/01_menu_logo.png" alt="Detalle del menú: recuadro blanco con el logo CAT tapando el sol" loading="lazy"><figcaption>Menú · detalle del logo</figcaption></figure>
+        <figure><img class="tall" src="img/01_menu.png" alt="Menú completo con el logo en recuadro blanco" loading="lazy"><figcaption>Menú completo</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#3</span>
+          <span class="pill sev-high">Alto</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>El zapato está de perfil y se pierde sobre el asfalto</h3>
+        <dl>
+          <div><dt>Qué pasa</dt>
+            <dd><ul>
+              <li>Está dibujado de lado, pero el jugador avanza hacia el horizonte.</li>
+              <li>Es negro y morado oscuro, sin un contorno claro, así que se confunde con el asfalto (#26232B).</li>
+              <li>Por ser alargado, solo ocupa cerca del 54 % de la altura de su caja de 72 u, y en el carril se ve más pequeño de lo esperado.</li>
+            </ul></dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 5.1: vista desde atrás o en 3/4 desde atrás y arriba, colores CAT (amarillo y negro) y evitar que sea todo oscuro sin contorno claro.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Una versión vista desde atrás o en 3/4, con un contorno claro y más amarillo CAT. Si el cliente prefiere mantener este modelo, al menos agregarle un contorno blanco o gris.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img src="img/04_sprites_asfalto.png" alt="Obstáculos, moneda y zapato a tamaño de juego sobre el asfalto, con su caja marcada" loading="lazy"><figcaption>Tamaño real en el juego · caja de 64 u (obstáculos) y 72 u (zapato) en cian</figcaption></figure>
+        <figure><img src="img/01_menu_zapato.png" alt="Zapato en el menú sobre la grilla morada" loading="lazy"><figcaption>Menú · jugador_menu.png sobre la grilla</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#4</span>
+          <span class="pill sev-high">Alto</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>Los obstáculos son solo contorno: chocas con espacio vacío</h3>
+        <dl>
+          <div><dt>Qué pasa</dt>
+            <dd><ul>
+              <li>Ajedrez, dado y naipe son íconos de línea. El choque se calcula con un cuadrado del 70 % de la caja, así que el jugador pierde vida al tocar zonas donde solo hay asfalto.</li>
+              <li>El dado morado tiene muy poco contraste sobre el asfalto.</li>
+              <li>Su estilo de línea plana no combina con el pixel art del zapato y la CATCOIN.</li>
+            </ul></dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 5.3: la parte sólida debe ocupar al menos el 70 % de la caja, y una pieza oscura debe llevar contorno claro.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Obstáculos con relleno sólido (pueden conservar el contorno), en el mismo estilo que el zapato y la moneda, y un color más claro para el dado.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img class="tall" src="img/06_hitboxes.png" alt="Juego con las zonas de choque dibujadas en rosado sobre cada objeto" loading="lazy"><figcaption>Zonas de choque (rosado) · el cuadrado del naipe y el dado cubre espacio vacío</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 5 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#5</span>
+          <span class="pill sev-mid">Medio</span>
+          <span class="owner">Cliente</span>
+        </div>
+        <h3>Llegó un naipe en lugar del dominó</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>Los obstáculos entregados son <code>obstaculo_ajedrez</code>, <code>obstaculo_dado</code> y <code>obstaculo_naipe</code>. No hay dominó.</dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Secciones 1 y 5.3: el cliente pidió ficha de ajedrez, dominó y dados.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Confirmar con el cliente si el naipe reemplaza al dominó. Si no, pedir <code>obstaculo_domino_01@3x.png</code> con la ficha de pie.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img src="img/09_assets_entregados.png" alt="Hoja con todos los sprites entregados sobre el color del asfalto" loading="lazy"><figcaption>Todo lo entregado, sobre el color del asfalto</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 6 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#6</span>
+          <span class="pill sev-mid">Medio</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>Las paredes laterales tienen demasiado ruido y un texto ilegible</h3>
+        <dl>
+          <div><dt>Qué pasa</dt>
+            <dd><ul>
+              <li>El patrón de muchos colores compite con los obstáculos y las monedas, y cansa la vista cuando se mueve rápido.</li>
+              <li>El texto pequeño del patrón no se lee a 40 u de ancho.</li>
+              <li>Llegó un solo archivo que tiene texto, así que en el lado derecho no se puede reflejar (el texto quedaría al revés).</li>
+            </ul></dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 5.5: módulo de 120 × 480 px que se repita sin cortes. Si lleva texto, entregar <code>pared_izquierda</code> y <code>pared_derecha</code>; logos de máximo 32 u.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Una versión con menos colores (o más oscura), sin texto pequeño, y los archivos izquierdo y derecho por separado.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img src="img/05_paredes.png" alt="Detalle de la pared izquierda junto a la carretera" loading="lazy" style="max-width:220px;justify-self:center"><figcaption>Pared izquierda en movimiento, a 2x</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 7 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#7</span>
+          <span class="pill sev-mid">Medio</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>Siluetas con líneas muy finas, base flotando y detalles bajo el marcador</h3>
+        <dl>
+          <div><dt>Qué pasa</dt>
+            <dd><ul>
+              <li>Las líneas miden cerca de 0,6 u. En el celular se ven como una trama borrosa.</li>
+              <li>En varias ciudades la base no toca el borde inferior. En Villavicencio sobra un 24 % del lienzo abajo, así que la ciudad flota sobre el horizonte.</li>
+              <li>Monserrate (Bogotá) y la torre de Medellín quedan debajo de los corazones y del contador.</li>
+            </ul></dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 5.4: líneas de mínimo 2 u (8 px en el PNG 4x), base apoyada en el borde inferior y nada importante en las esquinas superiores (130 × 48 u).</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Engrosar las líneas en las 8 ciudades, bajar cada silueta hasta el borde inferior y despejar las esquinas superiores.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img src="img/07_ciudad_01_bogota.png" alt="Bogotá: Monserrate queda debajo de los corazones del marcador" loading="lazy"><figcaption>Bogotá · Monserrate bajo los corazones</figcaption></figure>
+        <figure><img src="img/07_ciudad_05_villavicencio.png" alt="Villavicencio: la ciudad no llega a la línea del horizonte" loading="lazy"><figcaption>Villavicencio · espacio vacío entre la ciudad y el horizonte</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 8 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#8</span>
+          <span class="pill sev-mid">Medio</span>
+          <span class="owner">Desarrollo</span>
+        </div>
+        <h3>El banner de nivel queda encima de la silueta</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>El aviso "NIVEL 1 — BOGOTÁ" aparece a 150 u, justo sobre la ciudad, y la tapa en el momento en que el jugador debería verla.</dd></div>
+          <div><dt>Qué dice la guía</dt><dd>Sección 6: el banner del nuevo nivel aparece en el paso D, después de la llegada a la ciudad.</dd></div>
+          <div class="ask"><dt>Qué hacer</dt><dd>Lo resolvemos en código: mover el banner a la carretera (debajo de 200 u) o mostrarlo después del destello. No requiere nada de diseño.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img class="tall" src="img/02_juego_banner.png" alt="Inicio del nivel 1 con el banner tapando la silueta de Bogotá" loading="lazy"><figcaption>Inicio del nivel 1</figcaption></figure>
+      </div>
+    </article>
+
+    <!-- 9 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#9</span>
+          <span class="pill sev-low">Bajo</span>
+          <span class="owner">Diseño</span>
+        </div>
+        <h3>Los archivos vienen a 9x en lugar de 3x</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>Todo llegó unas tres veces más grande que lo pedido, y con 1 px de más. Las proporciones están bien, así que para la prueba los reducimos. Las ciudades a 7681 px superan el límite de textura de muchos celulares (4096 px).</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Exportar al tamaño exacto de la tabla. Si es pixel art, al 300 % con "vecino más próximo".</dd></div>
+        </dl>
+      </div>
+      <div class="evidence" style="background:var(--surface)">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Archivo</th><th>Pedido</th><th>Entregado</th></tr></thead>
+            <tbody>
+              <tr><td>personaje_juego.png</td><td class="num">216 × 216</td><td class="num bad">649 × 649</td></tr>
+              <tr><td>personaje_menu.png</td><td class="num">360 × 360</td><td class="num bad">1081 × 1081</td></tr>
+              <tr><td>catcoin.png</td><td class="num">96 × 96</td><td class="num bad">289 × 289</td></tr>
+              <tr><td>icono_catcoin.png</td><td class="num">48 × 48</td><td class="num bad">145 × 145</td></tr>
+              <tr><td>obstaculo_*.png</td><td class="num">192 × 192</td><td class="num bad">577 × 577</td></tr>
+              <tr><td>paredes_laterales.png</td><td class="num">120 × 480</td><td class="num bad">361 × 1441</td></tr>
+              <tr><td>ciudad_0N_*.png</td><td class="num">1920 × 800</td><td class="num bad">7681 × 3201</td></tr>
+              <tr><td>icono_cat_512.png</td><td class="num">512 × 512</td><td class="num bad">1537 × 1537</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 10 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#10</span>
+          <span class="pill sev-low">Bajo</span>
+          <span class="owner">Diseño · Cliente</span>
+        </div>
+        <h3>El orden de las ciudades no coincide entre el .txt y los archivos</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>Los archivos siguen el orden de la guía (Ibagué es la 04), pero <code>CÓDIGOS HEXADECIMAL COLORES JUEGO.txt</code> lista a Valledupar en el 4 e Ibagué en el 8. Para la prueba usamos los números de los archivos y buscamos los colores por el nombre de la ciudad.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>Confirmar el orden definitivo de los niveles (sigue pendiente con el cliente) y numerar igual el .txt y los archivos.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence" style="background:var(--surface)">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nivel</th><th>Archivo</th><th>Posición en .txt</th><th>Colores</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td>bogota</td><td class="num">1</td><td><span class="swatch" style="background:#ED713B"></span><span class="swatch" style="background:#C4D556"></span><span class="swatch" style="background:#7F4885"></span></td></tr>
+              <tr><td class="num">2</td><td>cali</td><td class="num">2</td><td><span class="swatch" style="background:#3E54A0"></span><span class="swatch" style="background:#CF4893"></span><span class="swatch" style="background:#00956E"></span></td></tr>
+              <tr><td class="num">3</td><td>medellin</td><td class="num">3</td><td><span class="swatch" style="background:#E73E3F"></span><span class="swatch" style="background:#C4D556"></span><span class="swatch" style="background:#EB666F"></span></td></tr>
+              <tr><td class="num">4</td><td>ibague</td><td class="num bad">8</td><td><span class="swatch" style="background:#7F4885"></span><span class="swatch" style="background:#00956E"></span><span class="swatch" style="background:#E73E3F"></span></td></tr>
+              <tr><td class="num">5</td><td>villavicencio</td><td class="num">5</td><td><span class="swatch" style="background:#CF4893"></span><span class="swatch" style="background:#ED713B"></span><span class="swatch" style="background:#E73E3F"></span></td></tr>
+              <tr><td class="num">6</td><td>valledupar</td><td class="num bad">4</td><td><span class="swatch" style="background:#3E54A0"></span><span class="swatch" style="background:#ED713B"></span><span class="swatch" style="background:#CF4893"></span></td></tr>
+              <tr><td class="num">7</td><td>monteria</td><td class="num bad">6</td><td><span class="swatch" style="background:#00956E"></span><span class="swatch" style="background:#EB666F"></span><span class="swatch" style="background:#7F4885"></span></td></tr>
+              <tr><td class="num">8</td><td>neiva</td><td class="num bad">7</td><td><span class="swatch" style="background:#ED713B"></span><span class="swatch" style="background:#CF4893"></span><span class="swatch" style="background:#E73E3F"></span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- 11 -->
+    <article class="issue">
+      <div class="issue-text">
+        <div class="issue-head">
+          <span class="id">#11</span>
+          <span class="pill sev-low">Bajo</span>
+          <span class="owner">Cliente</span>
+        </div>
+        <h3>El título sigue diciendo "Carro Coleccionista"</h3>
+        <dl>
+          <div><dt>Qué pasa</dt><dd>El personaje ya es un zapato, pero el nombre final del juego sigue sin definirse, así que el menú y la pestaña del navegador conservan el nombre anterior.</dd></div>
+          <div class="ask"><dt>Qué pedir</dt><dd>El nombre final del juego (¿"Game Night"?). El cambio de texto lo hacemos en código.</dd></div>
+        </dl>
+      </div>
+      <div class="evidence">
+        <figure><img class="tall" src="img/01_menu.png" alt="Menú con el título Carro Coleccionista" loading="lazy"><figcaption>Menú · título anterior</figcaption></figure>
+      </div>
+    </article>
+  </div>
+
+  <h2>Referencia: las 8 ciudades con la paleta enviada</h2>
+  <div class="panel" style="background:var(--shot-bg)">
+    <figure><img src="img/08_paleta_ciudades.png" alt="Las ocho ciudades con su cielo y silueta según la paleta enviada" loading="lazy"><figcaption>Cielo arriba → cielo abajo, silueta teñida con el tercer color</figcaption></figure>
+  </div>
+
+  <h2>Archivos que faltan</h2>
+  <div class="panel">
+    <ul>
+      <li><code>logo_cat_negro.svg</code> y los PNG a 720 px de los tres logos (sección 5.6).</li>
+      <li><code>obstaculo_domino_01@3x.png</code>, si el naipe no lo reemplaza (ver #5).</li>
+      <li><code>pared_izquierda@3x.png</code> y <code>pared_derecha@3x.png</code>, porque la pared lleva texto (ver #6).</li>
+      <li>Opcionales, sin entregar: animación de paso del zapato, giro de la CATCOIN, variantes de los obstáculos y cortinilla de transición.</li>
+    </ul>
+  </div>
+
+  <h2>Lo que sí funciona</h2>
+  <div class="panel">
+    <ul>
+      <li>La CATCOIN se lee muy bien sobre el asfalto y es el único objeto amarillo, como pide la regla de contraste.</li>
+      <li>Bogotá, Cali, Ibagué y Montería tienen buen contraste entre cielo y silueta.</li>
+      <li>La pared se repite en vertical sin cortes visibles.</li>
+      <li>Las proporciones de todos los PNG son correctas, así que el juego solo tuvo que reducirlos.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Prueba hecha el 16 de septiembre de 2026 sobre la rama <code>prueba/disenos-game-night</code>. Los archivos de GAME NIGHT solo se leyeron y descargaron; la carpeta compartida no se modificó.
+  </footer>
+</div>
