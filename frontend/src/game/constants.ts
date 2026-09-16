@@ -29,11 +29,21 @@ export interface LevelDefinition {
   city: string;
   minSpeed: number;
   roadColor: number; // color del asfalto en ese nivel
+  skyline: string;   // clave/archivo de la silueta (ciudad_0N_nombre)
+  skyTop: string;    // paleta de la diseñadora: cielo arriba, cielo abajo, silueta
+  skyBottom: string;
+  skylineColor: number;
 }
 
+// PRUEBA DE DISEÑO: orden según la spec (numeración de los archivos); colores de
+// "CÓDIGOS HEXADECIMAL COLORES JUEGO.txt", asumiendo el orden cielo arriba / cielo abajo / silueta.
 export const LEVELS: LevelDefinition[] = [
-  { name: "Nivel 1", city: "Bogotá",  minSpeed: 0,   roadColor: 0x26232b },
-  { name: "Nivel 2", city: "Peoria",  minSpeed: 260, roadColor: 0x2b2233 },
-  { name: "Nivel 3", city: "Houston", minSpeed: 320, roadColor: 0x2e2226 },
-  { name: "Nivel 4", city: "Tokio",   minSpeed: 380, roadColor: 0x1f2433 },
+  { name: "Nivel 1", city: "Bogotá",        minSpeed: 0,   roadColor: 0x26232b, skyline: "ciudad_01_bogota",        skyTop: "#ED713B", skyBottom: "#C4D556", skylineColor: 0x7f4885 },
+  { name: "Nivel 2", city: "Cali",          minSpeed: 240, roadColor: 0x26232b, skyline: "ciudad_02_cali",          skyTop: "#3E54A0", skyBottom: "#CF4893", skylineColor: 0x00956e },
+  { name: "Nivel 3", city: "Medellín",      minSpeed: 280, roadColor: 0x26232b, skyline: "ciudad_03_medellin",      skyTop: "#E73E3F", skyBottom: "#C4D556", skylineColor: 0xeb666f },
+  { name: "Nivel 4", city: "Ibagué",        minSpeed: 320, roadColor: 0x26232b, skyline: "ciudad_04_ibague",        skyTop: "#7F4885", skyBottom: "#00956E", skylineColor: 0xe73e3f },
+  { name: "Nivel 5", city: "Villavicencio", minSpeed: 360, roadColor: 0x26232b, skyline: "ciudad_05_villavicencio", skyTop: "#CF4893", skyBottom: "#ED713B", skylineColor: 0xe73e3f },
+  { name: "Nivel 6", city: "Valledupar",    minSpeed: 400, roadColor: 0x26232b, skyline: "ciudad_06_valledupar",    skyTop: "#3E54A0", skyBottom: "#ED713B", skylineColor: 0xcf4893 },
+  { name: "Nivel 7", city: "Montería",      minSpeed: 440, roadColor: 0x26232b, skyline: "ciudad_07_monteria",      skyTop: "#00956E", skyBottom: "#EB666F", skylineColor: 0x7f4885 },
+  { name: "Nivel 8", city: "Neiva",         minSpeed: 480, roadColor: 0x26232b, skyline: "ciudad_08_neiva",         skyTop: "#ED713B", skyBottom: "#CF4893", skylineColor: 0xe73e3f },
 ];

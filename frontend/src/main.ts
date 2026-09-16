@@ -15,7 +15,9 @@ async function boot() {
   } catch {
     // seguimos con la fuente de respaldo
   }
-  new Phaser.Game(gameConfig);
+  const game = new Phaser.Game(gameConfig);
+  // PRUEBA DE DISEÑO: acceso desde la consola para avanzar fotogramas con la pestaña en segundo plano
+  if (import.meta.env.DEV) (window as unknown as { __game: Phaser.Game }).__game = game;
 }
 
 void boot();

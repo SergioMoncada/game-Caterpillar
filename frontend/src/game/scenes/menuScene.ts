@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
-import { ensureTextures } from "../textures";
+import { ensureTextures, preloadDesignAssets } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton, layeredText } from "../ui";
 
 const HORIZON_Y = 230;
@@ -20,6 +20,10 @@ export default class MenuScene extends Phaser.Scene {
     super("MenuScene");
   }
 
+  preload() {
+    preloadDesignAssets(this);
+  }
+
   create() {
     ensureTextures(this);
     this.starting = false;
@@ -36,6 +40,9 @@ export default class MenuScene extends Phaser.Scene {
     this.drawHorizon();
 
     addCautionStrips(this, "caution-yellow");
+
+    // PRUEBA DE DISEÑO: logo CAT (blanco) junto al título, sobre el sol
+    this.add.image(GAME_WIDTH / 2, 195, "logo-cat-blanco").setDisplaySize(96, 71).setDepth(3);
 
     // ── Título con doble sombra + parpadeo ──
     const title = layeredText(
@@ -80,8 +87,8 @@ export default class MenuScene extends Phaser.Scene {
       fontFamily: PIXEL_FONT, fontSize: "8px", color: CSS.muted,
     }).setOrigin(0.5, 0);
 
-    // ── Jeep rebotando ──
-    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 33, "jeep-menu").setDepth(40);
+    // ── Zapato rebotando ── (jugador_menu.png: 360px = 120u)
+    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 45, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
     this.tweens.add({ targets: jeep, y: jeep.y - 3, duration: 500, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");

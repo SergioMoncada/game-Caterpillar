@@ -41,7 +41,7 @@ export default class GameOverScene extends Phaser.Scene {
     // ── Panel de estadísticas ──
     const LINE = 12 * 2.4;
     const scoreLine = this.add.text(0, 0, `SCORE: ${score}`, { fontFamily: PIXEL_FONT, fontSize: "12px", color: CSS.white }).setOrigin(0.5);
-    const coinsLabel = this.add.text(0, 0, "MONEDAS: ", { fontFamily: PIXEL_FONT, fontSize: "12px", color: CSS.white }).setOrigin(0, 0.5);
+    const coinsLabel = this.add.text(0, 0, "CATCOINS: ", { fontFamily: PIXEL_FONT, fontSize: "12px", color: CSS.white }).setOrigin(0, 0.5);
     const coinsValue = this.add.text(0, 0, String(coins), { fontFamily: PIXEL_FONT, fontSize: "12px", color: CSS.yellow }).setOrigin(0, 0.5);
 
     const contentW = Math.max(scoreLine.width, coinsLabel.width + coinsValue.width);

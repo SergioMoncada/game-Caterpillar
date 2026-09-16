@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_WIDTH, GAME_HEIGHT, BARRIER_WIDTH } from "./constants";
+import { GAME_WIDTH, GAME_HEIGHT, BARRIER_WIDTH, LEVELS } from "./constants";
 import { CSS } from "./theme";
 
 /**
@@ -69,7 +69,39 @@ const HEART_ROWS = [
   "...X...",
 ];
 
-export const OBSTACLE_KEYS = ["rock", "cone", "barrel"] as const;
+export const OBSTACLE_KEYS = ["obst-ajedrez", "obst-dado", "obst-naipe"] as const;
+
+/** PRUEBA DE DISEÑO: assets entregados en la carpeta GAME NIGHT (exportados a los tamaños de la spec) */
+export function preloadDesignAssets(scene: Phaser.Scene) {
+  const img = (key: string, path: string) => {
+    if (!scene.textures.exists(key)) scene.load.image(key, `assets/${path}`);
+  };
+  img("jugador", "jugador/jugador@3x.png");
+  img("jugador-menu", "jugador/jugador_menu.png");
+  img("catcoin", "monedas/catcoin@3x.png");
+  img("catcoin-hud", "monedas/catcoin_hud@3x.png");
+  img("obst-ajedrez", "obstaculos/obstaculo_ajedrez_01@3x.png");
+  img("obst-dado", "obstaculos/obstaculo_dado_01@3x.png");
+  img("obst-naipe", "obstaculos/obstaculo_naipe_01@3x.png");
+  img("pared", "paredes/pared@3x.png");
+  LEVELS.forEach((l) => img(l.skyline, `ciudades/${l.skyline}@4x.png`));
+  if (!scene.textures.exists("logo-cat-blanco")) {
+    scene.load.svg("logo-cat-blanco", "assets/logos/logo_cat_blanco.svg", { width: 240, height: 179 });
+  }
+}
+
+/** Degradado del cielo de cada nivel (franja superior de 200u) */
+export function skyTexture(scene: Phaser.Scene, top: string, bottom: string, h: number) {
+  const key = `sky-${top}-${bottom}`;
+  canvasTexture(scene, key, GAME_WIDTH, h, (ctx) => {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, top);
+    g.addColorStop(1, bottom);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, GAME_WIDTH, h);
+  });
+  return key;
+}
 
 /** Margen transparente alrededor de los sprites que llevan sombra "drop-shadow" horneada */
 export const SHADOW_PAD = 10;

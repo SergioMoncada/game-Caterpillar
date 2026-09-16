@@ -7,7 +7,7 @@ import {
   BARRIER_WIDTH, ROAD_LEFT, ROAD_RIGHT, ROAD_WIDTH, PLAYER_Y,
 } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
-import { ensureTextures, OBSTACLE_KEYS, SHADOW_PAD, recordBannerTexture } from "../textures";
+import { ensureTextures, OBSTACLE_KEYS, preloadDesignAssets, recordBannerTexture, skyTexture } from "../textures";
 import { addScanlines, addScreenFrame, borderedPanel } from "../ui";
 import { startSession, submitResult, type SubmitResult } from "../../api/scores";
 
@@ -16,12 +16,13 @@ const DESPAWN_Y = GAME_HEIGHT + 60;
 
 type ArcadeImage = Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
 
-/** Hitbox de cada obstáculo (en px, relativo a su sprite de 48x48) */
-const OBSTACLE_HITBOX: Record<(typeof OBSTACLE_KEYS)[number], { w: number; h: number; ox: number; oy: number }> = {
-  rock:   { w: 32, h: 26, ox: 8, oy: 10 },
-  cone:   { w: 32, h: 34, ox: 8, oy: 6 },
-  barrel: { w: 32, h: 38, ox: 8, oy: 6 },
-};
+// Tamaños en juego según la spec (u); las texturas vienen a 3x
+const PLAYER_SIZE = 72;
+const OBSTACLE_SIZE = 64;
+const COIN_SIZE = 32;
+const TEX_SCALE = 3;
+/** La spec pide que la parte sólida ocupe >= 70% de la caja: el choque usa ese cuadrado centrado */
+const OBSTACLE_HITBOX_RATIO = 0.7;
 
 export interface GameOverData {
   score: number;
@@ -41,6 +42,9 @@ export default class GameScene extends Phaser.Scene {
   private road!: Phaser.GameObjects.Rectangle;
   private laneDividers: Phaser.GameObjects.TileSprite[] = [];
   private barriers: Phaser.GameObjects.TileSprite[] = [];
+  private sky!: Phaser.GameObjects.Image;
+  private skyline!: Phaser.GameObjects.Image;
+  private skylineTween?: Phaser.Tweens.Tween;
 
   private laneX: number[] = [];
   private currentLane = 1;
@@ -91,6 +95,10 @@ export default class GameScene extends Phaser.Scene {
     this.banners = {};
   }
 
+  preload() {
+    preloadDesignAssets(this);
+  }
+
   async create() {
     ensureTextures(this);
 
@@ -99,11 +107,11 @@ export default class GameScene extends Phaser.Scene {
 
     this.buildTrack(laneWidth);
 
-    // ── Jeep del jugador ──
-    this.car = this.physics.add.image(this.laneX[this.currentLane], PLAYER_Y, "jeep").setDepth(30);
-    const carW = this.car.width - SHADOW_PAD * 2;
-    const carH = this.car.height - SHADOW_PAD * 2;
-    this.car.body.setSize(carW - 8, carH - 6).setOffset(SHADOW_PAD + 4, SHADOW_PAD + 3);
+    // ── Zapato del jugador ── (216px de textura; el zapato ocupa ~x 3-213, y 50-167)
+    this.car = this.physics.add.image(this.laneX[this.currentLane], PLAYER_Y, "jugador")
+      .setDisplaySize(PLAYER_SIZE, PLAYER_SIZE)
+      .setDepth(30);
+    this.car.body.setSize(180, 100).setOffset(18, 58);
     this.car.body.setAllowGravity(false);
 
     this.obstacles = this.physics.add.group();
@@ -167,12 +175,14 @@ export default class GameScene extends Phaser.Scene {
       this.currentSpeed = CAR_START_SPEED + (this.elapsedMs / 1000) * SPEED_INCREASE_PER_SEC;
     }
     this.laneDividers.forEach((d) => (d.tilePositionY -= this.currentSpeed * dt));
-    this.barriers.forEach((b) => (b.tilePositionY -= this.currentSpeed * dt));
+    // tilePosition va en px de textura (3x): se compensa la escala para que la pared vaya a la velocidad de la pista
+    this.barriers.forEach((b) => (b.tilePositionY -= this.currentSpeed * dt * TEX_SCALE));
 
     const nextLevel = LEVELS[this.currentLevelIndex + 1];
     if (this.isRunning && nextLevel && this.currentSpeed >= nextLevel.minSpeed) {
       this.currentLevelIndex++;
       this.road.setFillStyle(nextLevel.roadColor);
+      this.showLevel(this.currentLevelIndex);
       this.showBanner(`${nextLevel.name.toUpperCase()} — ${nextLevel.city.toUpperCase()}`, "level");
     }
 
@@ -199,8 +209,34 @@ export default class GameScene extends Phaser.Scene {
       this.laneDividers.push(this.add.tileSprite(Math.round(x) - 2, 0, 4, GAME_HEIGHT, "lane-dash").setOrigin(0, 0));
     }
 
-    this.barriers.push(this.add.tileSprite(0, 0, BARRIER_WIDTH, GAME_HEIGHT, "barrier").setOrigin(0, 0).setDepth(20));
-    this.barriers.push(this.add.tileSprite(ROAD_RIGHT, 0, BARRIER_WIDTH, GAME_HEIGHT, "barrier").setOrigin(0, 0).setDepth(20));
+    // Paredes: un solo archivo con texto, así que no se refleja en el lado derecho (spec 5.5)
+    for (const x of [0, ROAD_RIGHT]) {
+      this.barriers.push(
+        this.add.tileSprite(x, 0, BARRIER_WIDTH, GAME_HEIGHT, "pared").setOrigin(0, 0).setTileScale(1 / TEX_SCALE).setDepth(20)
+      );
+    }
+
+    this.buildSkyline();
+  }
+
+  /** PRUEBA DE DISEÑO: franja superior de 200u con cielo y silueta de la ciudad (spec 5.4 y 6). Tapa pista y obstáculos hasta el horizonte. */
+  private buildSkyline() {
+    const DEPTH = 25; // sobre obstáculos (10) y paredes (20), bajo el jugador (30) y el HUD (100)
+    this.sky = this.add.image(0, 0, "__DEFAULT").setOrigin(0, 0).setDepth(DEPTH);
+    this.skyline = this.add.image(GAME_WIDTH / 2, OBSTACLE_TOP_ZONE_Y, LEVELS[0].skyline).setOrigin(0.5, 1).setDepth(DEPTH);
+    this.add.rectangle(0, OBSTACLE_TOP_ZONE_Y - 1, GAME_WIDTH, 2, COLORS.black, 0.8).setOrigin(0, 0).setDepth(DEPTH);
+    this.showLevel(0);
+  }
+
+  /** Cambia cielo y silueta al nivel indicado y reinicia el "acercamiento" (la silueta crece hasta ~125%) */
+  private showLevel(index: number) {
+    const level = LEVELS[index];
+    this.sky.setTexture(skyTexture(this, level.skyTop, level.skyBottom, OBSTACLE_TOP_ZONE_Y));
+    this.skyline.setTexture(level.skyline).setTint(level.skylineColor);
+    const base = GAME_WIDTH / this.skyline.width;
+    this.skyline.setScale(base * 0.8);
+    this.skylineTween?.remove();
+    this.skylineTween = this.tweens.add({ targets: this.skyline, scale: base * 1.25, duration: 10000, ease: "Sine.easeIn" });
   }
 
   private buildHud() {
@@ -218,7 +254,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.coinsValue = this.add.text(right, top, "0", { ...style, color: CSS.yellow }).setOrigin(1, 0).setDepth(HUD_DEPTH);
-    this.coinsLabel = this.add.text(right, top, "MONEDAS: ", style).setOrigin(1, 0).setDepth(HUD_DEPTH);
+    this.coinsLabel = this.add.text(right, top, "CATCOINS: ", style).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.scoreText = this.add.text(right, top + 16, "SCORE: 0", style).setOrigin(1, 0).setDepth(HUD_DEPTH);
     this.refreshHud();
   }
@@ -338,17 +374,17 @@ export default class GameScene extends Phaser.Scene {
     }
 
     const kind = Phaser.Utils.Array.GetRandom([...OBSTACLE_KEYS]);
-    const obstacle = this.physics.add.image(this.laneX[lane], -30, kind).setDepth(10);
-    const hb = OBSTACLE_HITBOX[kind];
+    const obstacle = this.physics.add.image(this.laneX[lane], -40, kind).setDisplaySize(OBSTACLE_SIZE, OBSTACLE_SIZE).setDepth(10);
     this.obstacles.add(obstacle);
-    obstacle.body.setSize(hb.w, hb.h).setOffset(hb.ox, hb.oy);
+    const hb = obstacle.width * OBSTACLE_HITBOX_RATIO;
+    obstacle.body.setSize(hb, hb, true);
     obstacle.body.setAllowGravity(false);
   }
 
   private spawnCoin() {
     if (this.isGameOver) return;
     const lane = Phaser.Math.Between(0, LANE_COUNT - 1);
-    const coin = this.physics.add.image(this.laneX[lane], -30, "coin").setDepth(10);
+    const coin = this.physics.add.image(this.laneX[lane], -30, "catcoin").setDisplaySize(COIN_SIZE, COIN_SIZE).setDepth(10);
     this.coins.add(coin);
     coin.body.setAllowGravity(false);
   }
