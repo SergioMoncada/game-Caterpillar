@@ -3,8 +3,10 @@ import "./style.css";
 import { gameConfig } from "./game/config";
 
 /**
- * Phaser dibuja el texto en canvas, así que la fuente pixel debe estar cargada ANTES de crear el juego.
- * Si no carga en 3s (sin internet), arranca igual con la fuente monospace de respaldo.
+ * Phaser dibuja el texto en canvas, así que la fuente pixel debe estar cargada ANTES de crear el juego:
+ * si llegara después, el texto ya horneado se queda con la de respaldo hasta que se recargue la página.
+ * La fuente se sirve desde el propio proyecto (public/fonts), así que esto resuelve de inmediato; el
+ * tope de 3s queda solo como red de seguridad para no dejar el juego colgado si algo fallara.
  */
 async function boot() {
   try {
