@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_WIDTH, GAME_HEIGHT, BARRIER_WIDTH, LEVELS } from "./constants";
+import { GAME_WIDTH, GAME_HEIGHT, BARRIER_WIDTH, LEVELS, MENU_HORIZON_Y } from "./constants";
 import { CSS } from "./theme";
 
 /**
@@ -83,7 +83,9 @@ export function preloadDesignAssets(scene: Phaser.Scene) {
   img("obst-ajedrez", "obstaculos/obstaculo_ajedrez_01@3x.png");
   img("obst-dado", "obstaculos/obstaculo_dado_01@3x.png");
   img("obst-naipe", "obstaculos/obstaculo_naipe_01@3x.png");
-  img("pared", "paredes/pared@3x.png");
+  img("pared", "paredes/paredes_laterales@3x.png");
+  img("titulo-menu", "titulos/titulo_menu.png");
+  img("logo-game-over", "logos/logo_game_over.png");
   LEVELS.forEach((l) => img(l.skyline, `ciudades/${l.skyline}@4x.png`));
   if (!scene.textures.exists("logo-cat-color")) {
     scene.load.svg("logo-cat-color", "assets/logos/logo_cat_color.svg", { width: 480, height: 357 });
@@ -197,7 +199,16 @@ function vignette(scene: Phaser.Scene, key: string, size: number, alpha: number)
 /** Genera (una sola vez) todas las texturas. Se puede llamar desde cualquier escena. */
 export function ensureTextures(scene: Phaser.Scene) {
   // Fondos
-  verticalGradient(scene, "bg-menu", [[0, "#1a0a2e"], [0.4, "#16081f"], [1, "#0a0a12"]]);
+  // El piso del menú (bajo el horizonte) va mucho más claro que el cielo: el zapato es casi
+  // negro (luminancia ~12) y sobre el fondo original (~11) desaparecía. Se aclara hacia abajo,
+  // que además refuerza la perspectiva: lo cercano al jugador queda más iluminado.
+  const horizon = MENU_HORIZON_Y / GAME_HEIGHT;
+  verticalGradient(scene, "bg-menu", [
+    [0, "#1a0a2e"],
+    [horizon - 0.002, "#16081f"],
+    [horizon, "#2b2540"],
+    [1, "#4a4458"],
+  ]);
   verticalGradient(scene, "bg-game", [[0, "#2a1a3d"], [0.6, "#1a1028"], [1, "#0a0a12"]]);
   canvasTexture(scene, "bg-gameover", GAME_WIDTH, GAME_HEIGHT, (ctx) => {
     const lg = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);

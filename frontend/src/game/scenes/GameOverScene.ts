@@ -1,8 +1,8 @@
 import Phaser from "phaser";
-import { GAME_WIDTH } from "../constants";
+import { GAME_WIDTH, GAME_HEIGHT } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, recordBannerTexture } from "../textures";
-import { addCautionStrips, addScreenFrame, arcadeButton, borderedPanel, layeredText } from "../ui";
+import { addCautionStrips, addScreenFrame, arcadeButton, borderedPanel, catLegalFooter, layeredText } from "../ui";
 import type { GameOverData } from "./GameScene";
 
 export default class GameOverScene extends Phaser.Scene {
@@ -27,7 +27,12 @@ export default class GameOverScene extends Phaser.Scene {
     addCautionStrips(this, "caution-red");
 
     const cx = GAME_WIDTH / 2;
-    let y = 94;
+
+    // ── Logo CAT + aviso legal, pegados al borde inferior (sobre la franja de precaución) ──
+    // Se construye primero: el resto del layout se reparte en el espacio que queda arriba.
+    catLegalFooter(this, GAME_HEIGHT - 26);
+
+    let y = 64;
 
     // ── GAME OVER con glitch ──
     const title = layeredText(
@@ -36,7 +41,7 @@ export default class GameOverScene extends Phaser.Scene {
       [{ dx: 4, dy: 4, color: CSS.red }, { dx: 8, dy: 8, color: "rgba(0,0,0,0.5)" }]
     );
     this.startGlitch(title.container);
-    y += title.main.height + 40;
+    y += title.main.height + 20;
 
     // ── Panel de estadísticas ──
     const LINE = 12 * 2.4;
@@ -54,7 +59,7 @@ export default class GameOverScene extends Phaser.Scene {
     const coinsX = cx - (coinsLabel.width + coinsValue.width) / 2;
     coinsLabel.setPosition(coinsX, line1 + LINE).setDepth(1);
     coinsValue.setPosition(coinsX + coinsLabel.width, line1 + LINE).setDepth(1);
-    y += panelH + 26;
+    y += panelH + 14;
 
     // ── Récord / estado del guardado ──
     if (isRecord) {
@@ -67,16 +72,16 @@ export default class GameOverScene extends Phaser.Scene {
       const shine = this.add.rectangle(0, 0, w, h, 0xffffff, 0);
       banner.add([this.add.image(0, 0, recordBannerTexture(this, w, h)), shine, frame, label]);
       this.tweens.add({ targets: shine, fillAlpha: 0.25, duration: 900, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-      y += h + 30;
+      y += h + 16;
     } else if (result.status !== "ok") {
       const prefix = result.status === "rejected" ? "PUNTAJE RECHAZADO" : "SIN CONEXIÓN";
       const msg = this.add.text(cx, y, `${prefix}:\n${(result.reason ?? "no se guardó el puntaje").toUpperCase()}`, {
         fontFamily: PIXEL_FONT, fontSize: "8px", color: CSS.red, align: "center",
         lineSpacing: 6, wordWrap: { width: GAME_WIDTH - 80, useAdvancedWrap: true },
       }).setOrigin(0.5, 0);
-      y += msg.height + 30;
+      y += msg.height + 16;
     } else {
-      y += 4;
+      y += 2;
     }
 
     // ── Botón reintentar ──
@@ -89,12 +94,12 @@ export default class GameOverScene extends Phaser.Scene {
       },
       () => this.leaveTo("GameScene")
     );
-    y += retry.height + 14 + 10;
+    y += retry.height + 10;
 
     this.add.text(cx, y, `MEJOR PUNTAJE ANTERIOR: ${previousBest}`, {
       fontFamily: PIXEL_FONT, fontSize: "9px", color: CSS.muted,
     }).setOrigin(0.5, 0);
-    y += 9 + 26;
+    y += 9 + 14;
 
     // Volver al menú (para cambiar de correo)
     const menuLink = this.add.text(cx, y, "◂ MENÚ PRINCIPAL", {

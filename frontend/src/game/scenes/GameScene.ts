@@ -25,14 +25,15 @@ const TEX_SCALE = 3;
 const OBSTACLE_HITBOX_RATIO = 0.7;
 
 // ── Escenario superior (spec 5.4 y 6) ──
-// Todo en colores planos: el cielo es la noche del juego apenas teñida con el color de la ciudad,
-// y la silueta es el color de la ciudad aclarado, para que se funda con el ambiente en vez de recortarse.
+// Todo en colores planos: el cielo es el color de la ciudad rebajado con la noche para que no queme,
+// y la silueta va en blanco, que es lo que la hace legible sobre cualquiera de las ocho paletas.
 const SKY_DEPTH = 25;       // sobre obstáculos (10) y paredes (20), bajo el jugador (30) y el HUD (100)
 const HAZE_DEPTH = 24;      // la neblina tapa la salida de los obstáculos en el horizonte
 const NIGHT = 0x160d22;
-const SKY_TINT = 0.22;      // cuánto color de la ciudad entra al cielo
-const SILHOUETTE_LIGHTEN = 0.25;
-const SILHOUETTE_ALPHA = 0.85;
+const SKY_TINT = 0.62;      // cuánto color de la ciudad entra al cielo; el resto es noche, que le baja la luz
+const SILHOUETTE_COLOR = 0xffffff;
+const SILHOUETTE_ALPHA = 1;
+const FLASH_MIX = 0.3;      // fuerza del destello con el color de la ciudad al cambiar de escenario
 /** Bandas planas escalonadas bajo el horizonte: [alto en u, opacidad] */
 const HAZE_BANDS: [number, number][] = [[6, 0.85], [8, 0.55], [12, 0.25]];
 const APPROACH_FROM = 0.8;  // escala relativa de la silueta al empezar el nivel ("lejos")
@@ -46,7 +47,6 @@ function mixColor(a: number, b: number, t: number) {
 }
 const hexToInt = (h: string) => parseInt(h.replace("#", ""), 16);
 const skyColorOf = (i: number) => mixColor(NIGHT, hexToInt(LEVELS[i].skyTop), SKY_TINT);
-const silhouetteColorOf = (i: number) => mixColor(LEVELS[i].skylineColor, 0xffffff, SILHOUETTE_LIGHTEN);
 
 export interface GameOverData {
   score: number;
@@ -205,11 +205,14 @@ export default class GameScene extends Phaser.Scene {
     // tilePosition va en px de textura (3x): se compensa la escala para que la pared vaya a la velocidad de la pista
     this.barriers.forEach((b) => (b.tilePositionY -= this.currentSpeed * dt * TEX_SCALE));
 
-    const nextLevel = LEVELS[this.currentLevelIndex + 1];
-    if (this.isRunning && nextLevel && this.currentSpeed >= nextLevel.minSpeed) {
-      this.currentLevelIndex++;
-      this.road.setFillStyle(nextLevel.roadColor);
-      this.arriveAtCity(this.currentLevelIndex);
+    // Las ciudades se recorren en bucle, una cada LEVEL_DURATION_MS: al pasar la última se vuelve a la primera
+    if (this.isRunning) {
+      const city = Math.floor(this.elapsedMs / LEVEL_DURATION_MS) % LEVELS.length;
+      if (city !== this.currentLevelIndex) {
+        this.currentLevelIndex = city;
+        this.road.setFillStyle(LEVELS[city].roadColor);
+        this.arriveAtCity(city);
+      }
     }
 
     this.obstacles.getChildren().forEach((obj) => {
@@ -235,7 +238,7 @@ export default class GameScene extends Phaser.Scene {
       this.laneDividers.push(this.add.tileSprite(Math.round(x) - 2, 0, 4, GAME_HEIGHT, "lane-dash").setOrigin(0, 0));
     }
 
-    // Paredes: un solo archivo con texto, así que no se refleja en el lado derecho (spec 5.5)
+    // Paredes laterales: el tile (120x402) va reflejado en vertical, así que el scroll no muestra costura
     for (const x of [0, ROAD_RIGHT]) {
       this.barriers.push(
         this.add.tileSprite(x, 0, BARRIER_WIDTH, GAME_HEIGHT, "pared").setOrigin(0, 0).setTileScale(1 / TEX_SCALE).setDepth(20)
@@ -251,7 +254,7 @@ export default class GameScene extends Phaser.Scene {
     this.sky = this.add.rectangle(0, 0, GAME_WIDTH, OBSTACLE_TOP_ZONE_Y, this.skyColor).setOrigin(0, 0).setDepth(SKY_DEPTH);
     this.skyline = this.add.image(GAME_WIDTH / 2, OBSTACLE_TOP_ZONE_Y, LEVELS[0].skyline)
       .setOrigin(0.5, 1)
-      .setTint(silhouetteColorOf(0))
+      .setTint(SILHOUETTE_COLOR)
       .setAlpha(SILHOUETTE_ALPHA)
       .setDepth(SKY_DEPTH);
 
@@ -260,7 +263,7 @@ export default class GameScene extends Phaser.Scene {
       this.haze.push(this.add.rectangle(0, y, GAME_WIDTH, h, this.skyColor, alpha).setOrigin(0, 0).setDepth(HAZE_DEPTH));
       y += h;
     }
-    this.horizonLine = this.add.rectangle(0, OBSTACLE_TOP_ZONE_Y - 1, GAME_WIDTH, 2, silhouetteColorOf(0), 0.35)
+    this.horizonLine = this.add.rectangle(0, OBSTACLE_TOP_ZONE_Y - 1, GAME_WIDTH, 2, SILHOUETTE_COLOR, 0.35)
       .setOrigin(0, 0)
       .setDepth(SKY_DEPTH);
     this.approach(APPROACH_FROM);
@@ -292,7 +295,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 2. Destello plano del color de la nueva ciudad y cambio de cielo
     const to = skyColorOf(index);
-    const flash = mixColor(this.skyColor, silhouetteColorOf(index), 0.45);
+    const flash = mixColor(this.skyColor, LEVELS[index].skylineColor, FLASH_MIX);
     this.paintSky(flash);
     this.tweens.addCounter({
       from: 0, to: 1, delay: 120, duration: 700,
@@ -300,10 +303,10 @@ export default class GameScene extends Phaser.Scene {
       onComplete: () => this.paintSky(to),
     });
     this.skyColor = to;
-    this.horizonLine.setFillStyle(silhouetteColorOf(index), 0.35);
+    this.horizonLine.setFillStyle(SILHOUETTE_COLOR, 0.35);
 
     // 3. La nueva ciudad aparece más lejos de lo normal y empieza a acercarse
-    this.skyline.setTexture(LEVELS[index].skyline).setTint(silhouetteColorOf(index)).setAlpha(0);
+    this.skyline.setTexture(LEVELS[index].skyline).setTint(SILHOUETTE_COLOR).setAlpha(0);
     this.approach(APPROACH_FROM * 0.75);
     this.tweens.add({ targets: this.skyline, alpha: SILHOUETTE_ALPHA, duration: 600, delay: 300 });
 
@@ -315,14 +318,14 @@ export default class GameScene extends Phaser.Scene {
     this.haze.forEach((band) => band.setFillStyle(color, band.fillAlpha));
   }
 
-  /** Nombre del nivel sobre el horizonte, en el color de la ciudad (reemplaza el banner en caja que tapaba la silueta) */
+  /** Nombre de la ciudad sobre el horizonte, en su color (reemplaza el banner en caja que tapaba la silueta) */
   private announceCity(index: number) {
     const level = LEVELS[index];
     this.banners.level?.destroy();
-    const label = this.add.text(GAME_WIDTH / 2, OBSTACLE_TOP_ZONE_Y + 18, `${level.name.toUpperCase()} · ${level.city.toUpperCase()}`, {
+    const label = this.add.text(GAME_WIDTH / 2, OBSTACLE_TOP_ZONE_Y + 18, level.city.toUpperCase(), {
       fontFamily: PIXEL_FONT,
       fontSize: "11px",
-      color: hex(silhouetteColorOf(index)),
+      color: hex(SILHOUETTE_COLOR),
       shadow: { offsetX: 2, offsetY: 2, color: hex(skyColorOf(index)), blur: 0, fill: true },
     }).setOrigin(0.5, 0);
     const container = this.add.container(0, 0, [label]).setDepth(SKY_DEPTH + 1).setAlpha(0);

@@ -129,6 +129,44 @@ export function arcadeButton(
   return { face, shadow, zone, text, width: w, height: h + DEPTH, trigger };
 }
 
+/** Aviso legal que acompaña al logo entregado en `Logo_game_over` (transcrito del asset) */
+const LEGAL_NOTICE = [
+  "© 2026 Caterpillar. All Rights Reserved.",
+  
+  "CAT, CATERPILLAR, LET'S DO THE WORK,",
+  'their respective logos, "Caterpillar Corporate Yellow",',
+  'the "Power Edge" and Cat "Modern Hex" trade dress',
+  "as well as corporate and product identity used herein,",
+  "are trademarks of Caterpillar and",
+  "may not be used without permission.",
+].join("\n");
+
+/**
+ * Logo CAT + aviso legal, anclados por su borde inferior a `bottomY`.
+ * El texto NO se recorta del JPEG (allí mide 4px por línea y es ilegible): se redibuja
+ * con una sans del sistema para que se lea a cualquier escala del canvas.
+ */
+export function catLegalFooter(scene: Phaser.Scene, bottomY: number, logoWidth = 168) {
+  const GAP = 10;
+
+  const legal = scene.add.text(GAME_WIDTH / 2, bottomY, LEGAL_NOTICE, {
+    fontFamily: "Arial, Helvetica, sans-serif",
+    fontSize: "11px",
+    color: "#ffffff",
+    align: "center",
+    lineSpacing: 3,
+  }).setOrigin(0.5, 1);
+
+  const logoTex = scene.textures.get("logo-game-over").getSourceImage();
+  const logoH = Math.round(logoWidth * (logoTex.height / logoTex.width));
+  const logo = scene.add.image(GAME_WIDTH / 2, bottomY - legal.height - GAP, "logo-game-over")
+    .setOrigin(0.5, 1)
+    .setDisplaySize(logoWidth, logoH);
+
+  const height = logoH + GAP + legal.height;
+  return { logo, legal, height, top: bottomY - height };
+}
+
 /** Panel con borde sólido y fondo semitransparente */
 export function borderedPanel(
   scene: Phaser.Scene,

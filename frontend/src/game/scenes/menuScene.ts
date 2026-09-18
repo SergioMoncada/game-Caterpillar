@@ -1,13 +1,18 @@
 import Phaser from "phaser";
-import { GAME_WIDTH, GAME_HEIGHT } from "../constants";
+import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
-import { addCautionStrips, addScreenFrame, arcadeButton, layeredText } from "../ui";
+import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
 
-const HORIZON_Y = 230;
-const GRID_COLOR = 0x2a0a3d;
+const HORIZON_Y = MENU_HORIZON_Y;
+// Neón claro: la grilla ahora corre sobre un piso aclarado, así que necesita ser más brillante
+// que él para seguir leyéndose (antes era un morado oscuro sobre un fondo casi negro).
+const GRID_COLOR = 0x9a6ac8;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HINT_TEXT = "TOCA IZQ / DER PARA MOVERTE";
+// El gris apagado de la paleta (CSS.muted) se pensó para el fondo casi negro original; sobre el
+// piso aclarado se lava, así que el menú usa un lavanda claro que sigue leyéndose como secundario.
+const HINT_COLOR = "#c9b8e8";
 const LOGO_RATIO = 720 / 535.53; // viewBox de logo_cat_color.svg
 
 export default class MenuScene extends Phaser.Scene {
@@ -43,15 +48,16 @@ export default class MenuScene extends Phaser.Scene {
 
     this.buildLogoPlate();
 
-    // ── Título con doble sombra + parpadeo ──
-    const title = layeredText(
-      this, GAME_WIDTH / 2, 262, "CARRO\nCOLECCIONISTA",
-      { fontSize: "24px", color: CSS.white, lineSpacing: 12 },
-      [{ dx: 3, dy: 3, color: CSS.red }, { dx: 6, dy: 6, color: "rgba(0,0,0,0.4)" }]
-    );
-    this.startFlicker(title.container);
+    // ── Título "STEP UP YOUR GAME" (asset de la diseñadora, ya trae contorno y sombra) ──
+    const TITLE_TOP = 250, TITLE_W = 304;
+    const titleTex = this.textures.get("titulo-menu").getSourceImage();
+    const titleH = Math.round(TITLE_W * (titleTex.height / titleTex.width));
+    const title = this.add.image(GAME_WIDTH / 2, TITLE_TOP, "titulo-menu")
+      .setOrigin(0.5, 0)
+      .setDisplaySize(TITLE_W, titleH);
+    this.startFlicker(title);
 
-    const subtitleY = 262 + title.main.height + 10;
+    const subtitleY = TITLE_TOP + titleH + 10;
     this.add.text(GAME_WIDTH / 2, subtitleY, "◆ EDICIÓN ARCADE ◆", {
       fontFamily: PIXEL_FONT, fontSize: "9px", color: CSS.yellow, letterSpacing: 1,
     }).setOrigin(0.5, 0);
@@ -83,7 +89,7 @@ export default class MenuScene extends Phaser.Scene {
     );
 
     this.hint = this.add.text(GAME_WIDTH / 2, buttonTop + playButton.height + 26, HINT_TEXT, {
-      fontFamily: PIXEL_FONT, fontSize: "8px", color: CSS.muted,
+      fontFamily: PIXEL_FONT, fontSize: "8px", color: HINT_COLOR,
     }).setOrigin(0.5, 0);
 
     // ── Zapato rebotando ── (jugador_menu.png: 360px = 120u)
@@ -137,11 +143,11 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   private resetHint() {
-    this.hint.setText(HINT_TEXT).setColor(CSS.muted);
+    this.hint.setText(HINT_TEXT).setColor(HINT_COLOR);
     this.emailInputEl.classList.remove("invalid");
   }
 
-  private startFlicker(target: Phaser.GameObjects.Container) {
+  private startFlicker(target: Phaser.GameObjects.Components.Alpha) {
     // keyframes: 93% → .6, 94% → 1, 95% → .7, 96% → 1  (ciclo de 3.5s)
     const CYCLE = 3500;
     const step = CYCLE * 0.01;
@@ -174,7 +180,7 @@ export default class MenuScene extends Phaser.Scene {
     const top = HORIZON_Y + 2;
     const depth = GAME_HEIGHT - top;
     g.clear();
-    g.lineStyle(1, GRID_COLOR, 1);
+    g.lineStyle(1, GRID_COLOR, 0.32);
 
     // líneas que convergen al punto de fuga
     for (let i = -12; i <= 12; i++) {
