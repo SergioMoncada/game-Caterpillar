@@ -4,7 +4,7 @@ import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, recordBannerTexture } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton, borderedPanel, catLegalFooter, layeredText } from "../ui";
 import type { GameOverData } from "./GameScene";
-import { ensureMusic, musicToggle, MUSIC_CREDIT } from "../music";
+import { startMusic, musicToggle, MUSIC_CREDIT } from "../music";
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -118,7 +118,7 @@ export default class GameOverScene extends Phaser.Scene {
     keyboard?.once("keydown-ENTER", () => retry.trigger());
     keyboard?.once("keydown-SPACE", () => retry.trigger());
 
-    ensureMusic(this);
+    startMusic(this);
     musicToggle(this, GAME_WIDTH - 14, 26);
 
     addScreenFrame(this, COLORS.red, "rgba(216,32,47,0.35)");

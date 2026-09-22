@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT } from "./constants";
 import { PIXEL_FONT } from "./theme";
+import { playClick } from "./sound";
 
 export interface TextShadow {
   dx: number;
@@ -109,7 +110,10 @@ export function arcadeButton(
   };
 
   const zone = scene.add.zone(x0, topY, w, h + DEPTH).setOrigin(0, 0).setInteractive({ useHandCursor: true });
-  zone.on("pointerdown", () => setPressed(true));
+  zone.on("pointerdown", () => {
+    setPressed(true);
+    playClick(scene);
+  });
   zone.on("pointerout", () => setPressed(false));
   zone.on("pointerup", () => {
     if (!pressed) return;
@@ -120,6 +124,7 @@ export function arcadeButton(
   /** Simula un click (para ENTER / ESPACIO): baja, espera y dispara */
   const trigger = () => {
     setPressed(true);
+    playClick(scene);
     scene.time.delayedCall(90, () => {
       setPressed(false);
       onClick();

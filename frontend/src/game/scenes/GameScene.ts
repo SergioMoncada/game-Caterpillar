@@ -10,7 +10,8 @@ import { COLORS, CSS, PIXEL_FONT, hex } from "../theme";
 import { ensureTextures, OBSTACLE_KEYS, preloadDesignAssets, recordBannerTexture } from "../textures";
 import { addScanlines, addScreenFrame, borderedPanel } from "../ui";
 import { startSession, submitResult, type SubmitResult } from "../../api/scores";
-import { ensureMusic, musicToggle } from "../music";
+import { startMusic, musicToggle } from "../music";
+import { playCoin, playHit } from "../sound";
 
 const OBSTACLE_TOP_ZONE_Y = 200;
 const DESPAWN_Y = GAME_HEIGHT + 60;
@@ -157,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     this.buildHud();
-    ensureMusic(this);
+    startMusic(this); // por si la descarga no había terminado al dar JUGAR
     musicToggle(this, GAME_WIDTH - 52, 46); // bajo CATCOINS / SCORE
     addScanlines(this);
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
@@ -573,6 +574,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.lives -= 1;
     this.refreshHud();
+    playHit(this);
     this.cameras.main.shake(180, 0.012);
     this.tweens.add({ targets: this.car, alpha: 0.25, duration: 70, yoyo: true, repeat: 3, onComplete: () => this.car.setAlpha(1) });
 
@@ -588,6 +590,7 @@ export default class GameScene extends Phaser.Scene {
     this.coinsCollected += 1;
     this.score += POINTS_PER_COIN;
     this.refreshHud();
+    playCoin(this);
 
     // Anuncia el récord en tiempo real, apenas se supera el récord real del jugador (una sola vez por partida)
     if (!this.recordAnnounced && this.previousBest > 0 && this.score > this.previousBest) {
