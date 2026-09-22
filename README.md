@@ -1,4 +1,4 @@
-# Carro Game
+# CAT Game
 
 Juego arcade de carro hecho con **Phaser 4 + TypeScript + Vite**. Todo vive en Cloudflare: un solo
 **Worker** sirve el juego y su API, que guarda sesiones y puntajes en **Cloudflare D1** y valida los
