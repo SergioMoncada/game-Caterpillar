@@ -1,4 +1,6 @@
-const API_BASE = "http://127.0.0.1:8000/api/scores";
+// En producción el Worker sirve juego y API en el mismo dominio, así que basta la ruta relativa.
+// En desarrollo Vite redirige /api al backend local (ver vite.config.ts).
+const API_BASE = "/api/scores";
 const TIMEOUT_MS = 5000;
 
 export interface StartSessionResponse {

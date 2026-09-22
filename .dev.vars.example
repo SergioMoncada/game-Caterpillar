@@ -1,0 +1,4 @@
+# Copia este archivo como .dev.vars para probar el Worker en local (npm run dev:worker).
+# .dev.vars está en .gitignore: nunca lo subas.
+SUPABASE_URL=https://TU-PROYECTO.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxxxxxx

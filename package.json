@@ -1,0 +1,16 @@
+{
+  "name": "carro-game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev:worker": "npm run build && wrangler dev --ip 0.0.0.0",
+    "deploy": "npm run build && wrangler deploy",
+    "typecheck:worker": "tsc -p worker"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260922.1",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.136.2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "carro-game",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "frontend/dist",
+    "binding": "ASSETS",
+    // /api/* lo atiende el Worker; todo lo demás son los archivos del juego
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true }
+  // SUPABASE_URL y SUPABASE_SECRET_KEY se cargan como secretos (no van aquí):
+  //   npx wrangler secret put SUPABASE_URL
+  //   npx wrangler secret put SUPABASE_SECRET_KEY
+  // En local van en .dev.vars (ver .dev.vars.example)
+}

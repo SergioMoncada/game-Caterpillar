@@ -47,7 +47,32 @@ npm install
 npm run dev                  # http://localhost:5173
 ```
 
-El frontend espera la API en `http://127.0.0.1:8000/api/scores` (ver `frontend/src/api/scores.ts`).
+El frontend llama a la API en la ruta relativa `/api/scores`. En desarrollo Vite la redirige a Django
+(`http://127.0.0.1:8000`); para usar el Worker local: `API_TARGET=http://127.0.0.1:8787 npm run dev`.
+
+## Producción (Cloudflare Workers + Supabase)
+
+En producción no se usa Django: un solo **Cloudflare Worker** (`worker/`) sirve el juego ya compilado
+(`frontend/dist`) y atiende `/api/scores/*` con la misma lógica y anti-trampas, escribiendo en las tablas
+de Supabase que crearon las migraciones de Django (`scores_player`, `scores_gamesession`).
+
+```bash
+npm install                                   # en la raíz: wrangler
+npx wrangler login
+npx wrangler secret put SUPABASE_URL          # https://<proyecto>.supabase.co
+npx wrangler secret put SUPABASE_SECRET_KEY   # clave secreta (sb_secret_...) de Supabase
+npm run deploy                                # compila el frontend y publica
+```
+
+Queda en `https://carro-game.<tu-subdominio>.workers.dev`. Para probar el Worker en local, copia
+`.dev.vars.example` como `.dev.vars` y ejecuta `npm run dev:worker`.
+
+## Ramas
+
+| Rama | Uso |
+| --- | --- |
+| `main` | Versión estable, la que está publicada |
+| `desarrollo` | Actualizaciones y cambios; se fusiona a `main` cuando están probados |
 
 ## Variables de entorno
 
