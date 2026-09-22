@@ -4,6 +4,7 @@ import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, recordBannerTexture } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton, borderedPanel, catLegalFooter, layeredText } from "../ui";
 import type { GameOverData } from "./GameScene";
+import { ensureMusic, musicToggle, MUSIC_CREDIT } from "../music";
 
 export default class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -30,7 +31,7 @@ export default class GameOverScene extends Phaser.Scene {
 
     // ── Logo CAT + aviso legal, pegados al borde inferior (sobre la franja de precaución) ──
     // Se construye primero: el resto del layout se reparte en el espacio que queda arriba.
-    catLegalFooter(this, GAME_HEIGHT - 26 - CENTER_OFFSET_Y, 136);
+    catLegalFooter(this, GAME_HEIGHT - 26 - CENTER_OFFSET_Y, 136, MUSIC_CREDIT);
 
     let y = 52 + CENTER_OFFSET_Y;
 
@@ -116,6 +117,9 @@ export default class GameOverScene extends Phaser.Scene {
     const keyboard = this.input.keyboard;
     keyboard?.once("keydown-ENTER", () => retry.trigger());
     keyboard?.once("keydown-SPACE", () => retry.trigger());
+
+    ensureMusic(this);
+    musicToggle(this, GAME_WIDTH - 14, 26);
 
     addScreenFrame(this, COLORS.red, "rgba(216,32,47,0.35)");
   }

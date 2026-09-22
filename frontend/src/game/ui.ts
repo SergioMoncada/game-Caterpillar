@@ -146,10 +146,22 @@ const LEGAL_NOTICE = [
  * El texto NO se recorta del JPEG (allí mide 4px por línea y es ilegible): se redibuja
  * con una sans del sistema para que se lea a cualquier escala del canvas.
  */
-export function catLegalFooter(scene: Phaser.Scene, bottomY: number, logoWidth = 168) {
+export function catLegalFooter(scene: Phaser.Scene, bottomY: number, logoWidth = 168, credit?: string) {
   const GAP = 10;
 
-  const legal = scene.add.text(GAME_WIDTH / 2, bottomY, LEGAL_NOTICE, {
+  // Crédito opcional (p. ej. la música) en la última línea, más tenue que el aviso de marca
+  const creditText = credit
+    ? scene.add.text(GAME_WIDTH / 2, bottomY, credit, {
+        fontFamily: "Arial, Helvetica, sans-serif",
+        fontSize: "10px",
+        color: "#c9b8e8",
+        align: "center",
+        wordWrap: { width: GAME_WIDTH - 60 },
+      }).setOrigin(0.5, 1)
+    : null;
+  const creditH = creditText ? creditText.height + 6 : 0;
+
+  const legal = scene.add.text(GAME_WIDTH / 2, bottomY - creditH, LEGAL_NOTICE, {
     fontFamily: "Arial, Helvetica, sans-serif",
     fontSize: "11px",
     color: "#ffffff",
@@ -159,12 +171,12 @@ export function catLegalFooter(scene: Phaser.Scene, bottomY: number, logoWidth =
 
   const logoTex = scene.textures.get("logo-game-over").getSourceImage();
   const logoH = Math.round(logoWidth * (logoTex.height / logoTex.width));
-  const logo = scene.add.image(GAME_WIDTH / 2, bottomY - legal.height - GAP, "logo-game-over")
+  const logo = scene.add.image(GAME_WIDTH / 2, bottomY - creditH - legal.height - GAP, "logo-game-over")
     .setOrigin(0.5, 1)
     .setDisplaySize(logoWidth, logoH);
 
-  const height = logoH + GAP + legal.height;
-  return { logo, legal, height, top: bottomY - height };
+  const height = logoH + GAP + legal.height + creditH;
+  return { logo, legal, creditText, height, top: bottomY - height };
 }
 
 /** Panel con borde sólido y fondo semitransparente */
