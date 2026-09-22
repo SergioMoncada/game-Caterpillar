@@ -10,6 +10,7 @@ import { COLORS, CSS, PIXEL_FONT, hex } from "../theme";
 import { ensureTextures, OBSTACLE_KEYS, preloadDesignAssets, recordBannerTexture } from "../textures";
 import { addScanlines, addScreenFrame, borderedPanel } from "../ui";
 import { startSession, submitResult, type SubmitResult } from "../../api/scores";
+import { ensureMusic, musicToggle } from "../music";
 
 const OBSTACLE_TOP_ZONE_Y = 200;
 const DESPAWN_Y = GAME_HEIGHT + 60;
@@ -150,11 +151,14 @@ export default class GameScene extends Phaser.Scene {
     this.cursors = keyboard.createCursorKeys();
     this.keyA = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.keyD = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      if (this.isRunning) this.moveLane(pointer.x < GAME_WIDTH / 2 ? -1 : 1);
+    // Un toque sobre un botón (p. ej. el de música) no mueve el carro
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
+      if (this.isRunning && over.length === 0) this.moveLane(pointer.x < GAME_WIDTH / 2 ? -1 : 1);
     });
 
     this.buildHud();
+    ensureMusic(this);
+    musicToggle(this, GAME_WIDTH - 52, 46); // bajo CATCOINS / SCORE
     addScanlines(this);
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
 
@@ -288,8 +292,8 @@ export default class GameScene extends Phaser.Scene {
 
     return new Promise((resolve) => {
       let done = false;
-      const close = () => {
-        if (done) return;
+      const close = (_pointer?: unknown, over?: Phaser.GameObjects.GameObject[]) => {
+        if (done || over?.length) return; // tocar el botón de música no cierra las instrucciones
         done = true;
         this.input.off("pointerdown", close);
         this.input.keyboard?.off("keydown", close);

@@ -3,6 +3,7 @@ import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y, CENTER_OFFSET_Y } from "../con
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
+import { ensureMusic, musicToggle } from "../music";
 
 const HORIZON_Y = MENU_HORIZON_Y;
 // Neón claro: la grilla ahora corre sobre un piso aclarado, así que necesita ser más brillante
@@ -95,6 +96,9 @@ export default class MenuScene extends Phaser.Scene {
     // ── Zapato rebotando ── (jugador_menu.png: 360px = 120u)
     const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 45 - CENTER_OFFSET_Y, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
     this.tweens.add({ targets: jeep, y: jeep.y - 3, duration: 500, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+
+    ensureMusic(this);
+    musicToggle(this, GAME_WIDTH - 14, 26);
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
   }
