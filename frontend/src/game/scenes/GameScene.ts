@@ -151,7 +151,7 @@ export default class GameScene extends Phaser.Scene {
     this.keyA = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.keyD = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      this.moveLane(pointer.x < GAME_WIDTH / 2 ? -1 : 1);
+      if (this.isRunning) this.moveLane(pointer.x < GAME_WIDTH / 2 ? -1 : 1);
     });
 
     this.buildHud();
@@ -163,20 +163,24 @@ export default class GameScene extends Phaser.Scene {
 
     const connecting = this.add.text(GAME_WIDTH / 2, 300, "CONECTANDO...", {
       fontFamily: PIXEL_FONT, fontSize: "10px", color: CSS.white,
-    }).setOrigin(0.5).setDepth(60);
+    }).setOrigin(0.5).setDepth(60).setVisible(false); // solo si el jugador toca antes de que responda el servidor
 
     // IMPORTANTE: esperamos la sesión y el récord real del backend ANTES de dejar que el juego
     // empiece a generar monedas/obstáculos, para que la comparación de récord sea correcta desde el inicio.
-    try {
-      const email = localStorage.getItem("playerEmail") ?? "invitado@test.com";
-      const res = await startSession(email);
-      this.sessionId = res.session_id ?? null;
-      this.previousBest = res.best_score ?? 0;
-    } catch (err) {
-      console.error("No se pudo iniciar sesión de juego", err);
-      this.sessionId = null;
-      this.previousBest = 0;
-    }
+    // Mientras tanto se muestran los controles; la partida arranca cuando hay sesión Y el jugador tocó.
+    const session = (async () => {
+      try {
+        const email = localStorage.getItem("playerEmail") ?? "invitado@test.com";
+        const res = await startSession(email);
+        this.sessionId = res.session_id ?? null;
+        this.previousBest = res.best_score ?? 0;
+      } catch (err) {
+        console.error("No se pudo iniciar sesión de juego", err);
+        this.sessionId = null;
+        this.previousBest = 0;
+      }
+    })();
+    await Promise.all([session, this.showControlsHint().then(() => connecting.setVisible(true))]);
 
     // La escena pudo cerrarse mientras esperábamos al servidor
     if (!this.sys.isActive()) return;
@@ -192,8 +196,11 @@ export default class GameScene extends Phaser.Scene {
   update(_time: number, delta: number) {
     if (this.isGameOver) return;
 
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.left!) || Phaser.Input.Keyboard.JustDown(this.keyA)) this.moveLane(-1);
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.right!) || Phaser.Input.Keyboard.JustDown(this.keyD)) this.moveLane(1);
+    // JustDown se lee siempre para consumir la tecla: así una pulsación durante las instrucciones no mueve el carro al arrancar
+    const left = Phaser.Input.Keyboard.JustDown(this.cursors.left!) || Phaser.Input.Keyboard.JustDown(this.keyA);
+    const right = Phaser.Input.Keyboard.JustDown(this.cursors.right!) || Phaser.Input.Keyboard.JustDown(this.keyD);
+    if (this.isRunning && left) this.moveLane(-1);
+    if (this.isRunning && right) this.moveLane(1);
 
     // La pista se mueve siempre (también mientras conecta), pero la dificultad solo corre con la partida
     const dt = delta / 1000;
@@ -224,6 +231,73 @@ export default class GameScene extends Phaser.Scene {
       const c = obj as ArcadeImage;
       c.body.setVelocityY(this.currentSpeed);
       if (c.y > DESPAWN_Y) c.destroy();
+    });
+  }
+
+  // ───────────────────────── Instrucciones ─────────────────────────
+
+  /**
+   * Antes de cada partida: cada mitad de la pista muestra hacia dónde mueve el carro.
+   * Se cierra con el primer toque, click o tecla; ese toque solo arranca, no mueve el carro.
+   */
+  private showControlsHint(): Promise<void> {
+    const touch = this.sys.game.device.input.touch;
+    const top = OBSTACLE_TOP_ZONE_Y;
+    const midY = Math.round((top + PLAYER_Y) / 2);
+    const text = (x: number, y: number, s: string, size: number, color: string) =>
+      this.add.text(x, y, s, {
+        fontFamily: PIXEL_FONT, fontSize: `${size}px`, color, align: "center",
+        shadow: { offsetX: 2, offsetY: 2, color: CSS.black, fill: true },
+      }).setOrigin(0.5);
+
+    const overlay = this.add.container(0, 0).setDepth(200);
+    overlay.add(this.add.rectangle(0, top, GAME_WIDTH, GAME_HEIGHT - top, COLORS.night, 0.65).setOrigin(0, 0));
+
+    // Divisor punteado: marca la frontera entre las dos zonas de toque
+    const divider = this.add.graphics();
+    divider.fillStyle(COLORS.yellow, 0.6);
+    for (let y = top + 70; y < GAME_HEIGHT - 30; y += 24) divider.fillRect(GAME_WIDTH / 2 - 1, y, 2, 12);
+    overlay.add(divider);
+
+    overlay.add(text(GAME_WIDTH / 2, top + 36, "CÓMO JUGAR", 16, CSS.yellow));
+
+    const sides: [dir: -1 | 1, label: string, key: string][] = [[-1, "IZQUIERDA", "A"], [1, "DERECHA", "D"]];
+    for (const [dir, label, key] of sides) {
+      const cx = GAME_WIDTH / 2 + dir * (GAME_WIDTH / 4);
+
+      // Flecha pixel con sombra dura roja, apuntando hacia su lado
+      const arrow = this.add.graphics();
+      const tri = (dx: number, dy: number, color: number) => {
+        arrow.fillStyle(color, 1);
+        arrow.fillTriangle(dir * 26 + dx, dy, -dir * 14 + dx, -30 + dy, -dir * 14 + dx, 30 + dy);
+        arrow.fillRect(-dir * 14 - (dir > 0 ? 22 : 0) + dx, -10 + dy, 22, 20);
+      };
+      tri(4, 4, COLORS.red);
+      tri(0, 0, COLORS.yellow);
+      arrow.setPosition(cx, midY - 40);
+      overlay.add(arrow);
+      this.tweens.add({ targets: arrow, x: cx + dir * 10, duration: 450, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+
+      overlay.add(text(cx, midY + 20, touch ? "TOCA AQUÍ" : `TECLA ${key}`, 12, CSS.white));
+      overlay.add(text(cx, midY + 44, `PARA IR A LA\n${label}`, 8, CSS.yellow).setLineSpacing(6));
+    }
+
+    const start = text(GAME_WIDTH / 2, midY + 130, touch ? "TOCA PARA EMPEZAR" : "CLICK O TECLA PARA EMPEZAR", 10, CSS.orange);
+    overlay.add(start);
+    this.tweens.add({ targets: start, alpha: 0.2, duration: 500, yoyo: true, repeat: -1, ease: "Stepped" });
+
+    return new Promise((resolve) => {
+      let done = false;
+      const close = () => {
+        if (done) return;
+        done = true;
+        this.input.off("pointerdown", close);
+        this.input.keyboard?.off("keydown", close);
+        this.tweens.add({ targets: overlay, alpha: 0, duration: 150, onComplete: () => overlay.destroy(true) });
+        resolve();
+      };
+      this.input.on("pointerdown", close);
+      this.input.keyboard?.on("keydown", close);
     });
   }
 

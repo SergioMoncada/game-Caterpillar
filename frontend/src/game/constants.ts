@@ -1,5 +1,21 @@
 export const GAME_WIDTH = 480;
-export const GAME_HEIGHT = 720;
+
+/**
+ * El ancho es fijo (carriles y controles no cambian) y el alto se ajusta a la pantalla al cargar:
+ * en un celular en vertical, más alargado que 2:3, el juego crece hacia abajo en vez de dejar
+ * franjas negras arriba y abajo. Todo el layout se calcula a partir de GAME_HEIGHT.
+ */
+const BASE_HEIGHT = 720;  // 2:3, el formato del diseño
+const MAX_HEIGHT = 1080;  // ~9:20, cubre los celulares más alargados
+
+function fitHeight() {
+  const ratio = window.innerHeight / window.innerWidth;
+  // Algunos navegadores embebidos cargan la página antes de tener tamaño (0x0): ahí va el formato base
+  if (!Number.isFinite(ratio)) return BASE_HEIGHT;
+  return Math.round(Math.min(Math.max(GAME_WIDTH * ratio, BASE_HEIGHT), MAX_HEIGHT));
+}
+
+export const GAME_HEIGHT = fitHeight();
 
 /** Línea de horizonte del menú: separa el cielo del piso en perspectiva */
 export const MENU_HORIZON_Y = 230;
