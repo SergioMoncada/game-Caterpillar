@@ -5,14 +5,17 @@
  *   POST /api/scores/start-session/
  *   POST /api/scores/submit-result/
  */
-import { Supabase } from "./supabase";
+import { Database } from "./db";
 import { validateSession } from "./anticheat";
 
 interface Env {
   ASSETS: Fetcher;
-  SUPABASE_URL: string;
-  SUPABASE_SECRET_KEY: string;
+  DB: D1Database;
 }
+
+type Body = Record<string, unknown>;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -27,9 +30,11 @@ function toInt(value: unknown): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-async function startSession(body: any, db: Supabase) {
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  if (!email) return json({ status: "error", reason: "email requerido" }, 400);
+async function startSession(body: Body, db: Database) {
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!EMAIL_RE.test(email) || email.length > 254) {
+    return json({ status: "error", reason: "email inválido" }, 400);
+  }
 
   const player = await db.getOrCreatePlayer(email);
   const session = await db.createSession(player.id);
@@ -40,33 +45,23 @@ async function startSession(body: any, db: Supabase) {
   );
 }
 
-async function submitResult(body: any, db: Supabase) {
+async function submitResult(body: Body, db: Database) {
   const session = await db.getSession(toInt(body.session_id));
   if (!session) return json({ status: "error", reason: "sesión no encontrada" }, 404);
+  if (session.ended_at) return json({ status: "rejected", reason: "la partida ya fue registrada" }, 409);
 
   const coins = toInt(body.coins);
   const score = toInt(body.score);
   const { isValid, reason } = validateSession(session.started_at, coins, score);
 
-  await db.updateSession(session.id, {
-    ended_at: new Date().toISOString(),
-    coins_reported: coins,
-    score_reported: score,
-    is_valid: isValid,
-    rejection_reason: reason,
-  });
+  // Cada sesión se cierra una sola vez: un resultado reenviado no vuelve a contar.
+  const closed = await db.closeSession(session.id, coins, score, isValid, reason);
+  if (!closed) return json({ status: "rejected", reason: "la partida ya fue registrada" }, 409);
 
   if (!isValid) return json({ status: "rejected", reason }, 400);
 
-  const player = await db.getPlayer(session.player_id);
-  if (!player) return json({ status: "error", reason: "jugador no encontrado" }, 404);
-
-  // Se guarda el mejor resultado, no la suma (igual que en views.py).
-  const totalCoins = Math.max(player.total_coins, coins);
-  await db.updatePlayer(player.id, {
-    total_coins: totalCoins,
-    best_score: Math.max(player.best_score, score),
-  });
+  const totalCoins = await db.recordBest(session.player_id, coins, score);
+  if (totalCoins === null) return json({ status: "error", reason: "jugador no encontrado" }, 404);
 
   return json({ status: "ok", total_coins: totalCoins }, 200);
 }
@@ -80,20 +75,14 @@ export default {
 
     if (request.method !== "POST") return json({ status: "error", reason: "método no permitido" }, 405);
 
-    const missing = (["SUPABASE_URL", "SUPABASE_SECRET_KEY"] as const).filter((name) => !env[name]);
-    if (missing.length > 0) {
-      console.error(`Faltan variables del Worker: ${missing.join(", ")}`);
-      return json({ status: "error", reason: "servidor sin configurar" }, 500);
-    }
-
-    let body: any;
+    let body: Body;
     try {
       body = await request.json();
     } catch {
       return json({ status: "error", reason: "JSON inválido" }, 400);
     }
 
-    const db = new Supabase(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY);
+    const db = new Database(env.DB);
     const path = url.pathname.replace(/\/+$/, "");
 
     try {
