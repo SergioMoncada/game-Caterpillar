@@ -33,15 +33,14 @@ Thumbs.db
 *.suo
 *.sw?
 
-# ---- Cloudflare / Wrangler ----
+# ---- Cloudflare Wrangler ----
 .wrangler/
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
 
-# ---- Documentos comerciales (el repo es público) ----
-Cotizacion_*.docx
-Cotizacion_*.pdf
+# ---- Documentos comerciales (no se suben al repo publico) ----
+Cotizacion_*
 
-# ---- Herramientas locales de Claude (skills genéricas, ~7 MB de fuentes) ----
+# ---- Herramientas locales de Claude (skills genericas, ~7 MB de fuentes) ----
 .claude/skills/

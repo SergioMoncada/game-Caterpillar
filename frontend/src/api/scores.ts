@@ -1,5 +1,5 @@
-// En producción el Worker sirve juego y API en el mismo dominio, así que basta la ruta relativa.
-// En desarrollo Vite redirige /api al backend local (ver vite.config.ts).
+// El juego y la API viven en el mismo dominio (un solo Worker), asi que basta la ruta relativa.
+// En desarrollo, Vite reenvia /api al Worker local (ver vite.config.ts).
 const API_BASE = "/api/scores";
 const TIMEOUT_MS = 5000;
 

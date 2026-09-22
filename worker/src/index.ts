@@ -1,17 +1,18 @@
-// Un solo Worker: sirve el juego (frontend/dist) y atiende /api/scores/*.
-// Replica los endpoints de backend/scores/views.py contra Supabase.
+/**
+ * Worker del juego. Reemplaza a backend/scores/views.py.
+ * Los archivos del juego (frontend/dist) los sirve Cloudflare directamente;
+ * este codigo solo corre para las rutas /api/* (ver run_worker_first en wrangler.jsonc):
+ *   POST /api/scores/start-session/
+ *   POST /api/scores/submit-result/
+ */
 import { Supabase } from "./supabase";
 import { validateSession } from "./anticheat";
 
-export interface Env {
+interface Env {
   ASSETS: Fetcher;
   SUPABASE_URL: string;
   SUPABASE_SECRET_KEY: string;
 }
-
-type Body = Record<string, unknown>;
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -20,23 +21,26 @@ function json(body: unknown, status: number): Response {
   });
 }
 
+/** Los enteros del cliente no son de fiar: los normalizamos antes de validar. */
 function toInt(value: unknown): number {
   const n = Math.trunc(Number(value));
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-async function startSession(body: Body, db: Supabase): Promise<Response> {
-  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  if (!EMAIL_RE.test(email) || email.length > 254) {
-    return json({ status: "error", reason: "email inválido" }, 400);
-  }
+async function startSession(body: any, db: Supabase) {
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  if (!email) return json({ status: "error", reason: "email requerido" }, 400);
 
   const player = await db.getOrCreatePlayer(email);
   const session = await db.createSession(player.id);
-  return json({ session_id: session.id, started_at: session.started_at, best_score: player.best_score }, 200);
+
+  return json(
+    { session_id: session.id, started_at: session.started_at, best_score: player.best_score },
+    200,
+  );
 }
 
-async function submitResult(body: Body, db: Supabase): Promise<Response> {
+async function submitResult(body: any, db: Supabase) {
   const session = await db.getSession(toInt(body.session_id));
   if (!session) return json({ status: "error", reason: "sesión no encontrada" }, 404);
 
@@ -57,17 +61,21 @@ async function submitResult(body: Body, db: Supabase): Promise<Response> {
   const player = await db.getPlayer(session.player_id);
   if (!player) return json({ status: "error", reason: "jugador no encontrado" }, 404);
 
+  // Se guarda el mejor resultado, no la suma (igual que en views.py).
   const totalCoins = Math.max(player.total_coins, coins);
   await db.updatePlayer(player.id, {
     total_coins: totalCoins,
     best_score: Math.max(player.best_score, score),
   });
+
   return json({ status: "ok", total_coins: totalCoins }, 200);
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // Cualquier ruta fuera de la API se resuelve con los archivos del juego.
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
     if (request.method !== "POST") return json({ status: "error", reason: "método no permitido" }, 405);
@@ -78,7 +86,7 @@ export default {
       return json({ status: "error", reason: "servidor sin configurar" }, 500);
     }
 
-    let body: Body;
+    let body: any;
     try {
       body = await request.json();
     } catch {
@@ -87,6 +95,7 @@ export default {
 
     const db = new Supabase(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY);
     const path = url.pathname.replace(/\/+$/, "");
+
     try {
       switch (path) {
         case "/api/scores/start-session":
@@ -97,7 +106,7 @@ export default {
           return json({ status: "error", reason: "ruta no encontrada" }, 404);
       }
     } catch (err) {
-      console.error(err);
+      console.error(err); // queda en los logs de Cloudflare, no se expone al cliente
       return json({ status: "error", reason: "error interno" }, 500);
     }
   },

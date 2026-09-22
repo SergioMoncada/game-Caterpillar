@@ -1,7 +1,18 @@
-// Misma regla que backend/scores/anticheat.py
-const MAX_COINS_PER_SECOND = 2;
+// Traduccion de backend/scores/anticheat.py
 
-export function validateSession(startedAt: string, coinsReported: number, scoreReported: number) {
+// Ajusta esto segun el diseno real del juego (cuantas monedas por segundo es realista)
+export const MAX_COINS_PER_SECOND = 2;
+
+export interface ValidationResult {
+  isValid: boolean;
+  reason: string;
+}
+
+export function validateSession(
+  startedAt: string,
+  coinsReported: number,
+  scoreReported: number,
+): ValidationResult {
   const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000;
 
   if (!Number.isFinite(elapsed) || elapsed <= 0) {

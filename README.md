@@ -1,91 +1,64 @@
 # Carro Game
 
-Juego arcade de carro hecho con **Phaser 4 + TypeScript + Vite** en el frontend y un backend en
-**Django + Django REST Framework** que guarda las sesiones de juego y los puntajes en **Supabase (PostgreSQL)**,
-con validación anti-trampas en el servidor.
+Juego arcade de carro hecho con **Phaser 4 + TypeScript + Vite**. Un solo **Cloudflare Worker**
+sirve el juego y su API, que guarda sesiones y puntajes en **Supabase (PostgreSQL)** y valida los
+resultados contra trampas en el servidor.
 
 ## Estructura
 
 ```
 carro-game/
-├── backend/          # API Django (sesiones, puntajes, anti-cheat)
-│   ├── accounts/     # usuarios / jugadores
-│   ├── config/       # settings, urls, wsgi/asgi
-│   └── scores/       # modelo de puntajes + anticheat.py
-├── frontend/         # juego Phaser (TypeScript + Vite)
+├── wrangler.jsonc    # configuracion del Worker (juego + API)
+├── frontend/         # juego Phaser (TypeScript + Vite), se compila a frontend/dist
 │   └── src/game/     # escenas, config, texturas, tema y UI
+├── worker/src/       # API: index.ts (rutas), anticheat.ts, supabase.ts
+├── supabase/         # schema.sql: tablas, permisos y RLS
+├── backend/          # API Django original (referencia, ya no se despliega)
 └── docs/             # especificaciones de assets
 ```
 
 ## Requisitos
 
-- Python 3.13+
-- Node.js 18+
-- Una base de datos PostgreSQL (el proyecto usa Supabase)
+- Node.js 20+
+- Una cuenta de Cloudflare y un proyecto de Supabase
 
-## Puesta en marcha
-
-### Backend
+## Desarrollo local
 
 ```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS / Linux
-pip install -r requirements.txt
-
-cp .env.example .env         # y rellena tus credenciales
-python manage.py migrate
-python manage.py runserver   # http://127.0.0.1:8000
+npm install                      # dependencias del Worker (en la raiz)
+cp .dev.vars.example .dev.vars   # y pega tu clave secreta de Supabase
+npm run build                    # compila el juego a frontend/dist
+npm run dev                      # juego + API en http://127.0.0.1:8787
 ```
 
-### Frontend
+Para trabajar en el juego con recarga en caliente, deja `npm run dev` corriendo en la raiz y en
+otra terminal ejecuta `cd frontend && npm run dev` (http://localhost:5173). Vite reenvia `/api` al Worker.
 
-```bash
-cd frontend
-npm install
-npm run dev                  # http://localhost:5173
-```
+## Despliegue (Cloudflare Workers Builds)
 
-El frontend llama a la API en la ruta relativa `/api/scores`. En desarrollo Vite la redirige a Django
-(`http://127.0.0.1:8000`); para usar el Worker local: `API_TARGET=http://127.0.0.1:8787 npm run dev`.
+El repositorio esta conectado al Worker `game-caterpillar`. Cada push a `main` despliega a produccion;
+los pushes a otras ramas crean versiones de vista previa.
 
-## Producción (Cloudflare Workers + Supabase)
+Configuracion en *Workers & Pages → game-caterpillar → Settings → Build*:
 
-En producción no se usa Django: un solo **Cloudflare Worker** (`worker/`) sirve el juego ya compilado
-(`frontend/dist`) y atiende `/api/scores/*` con la misma lógica y anti-trampas, escribiendo en las tablas
-de Supabase que crearon las migraciones de Django (`scores_player`, `scores_gamesession`).
-
-```bash
-npm install                                   # en la raíz: wrangler
-npx wrangler login
-npx wrangler secret put SUPABASE_URL          # https://<proyecto>.supabase.co
-npx wrangler secret put SUPABASE_SECRET_KEY   # clave secreta (sb_secret_...) de Supabase
-npm run deploy                                # compila el frontend y publica
-```
-
-Queda en `https://carro-game.<tu-subdominio>.workers.dev`. Para probar el Worker en local, copia
-`.dev.vars.example` como `.dev.vars` y ejecuta `npm run dev:worker`.
-
-## Ramas
-
-| Rama | Uso |
+| Campo | Valor |
 | --- | --- |
-| `main` | Versión estable, la que está publicada |
-| `desarrollo` | Actualizaciones y cambios; se fusiona a `main` cuando están probados |
+| Build command | `npm ci && npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | *(vacio)* |
+| Production branch | `main` |
 
-## Variables de entorno
+Variables en *Settings → Variables and Secrets*:
 
-Se configuran en `backend/.env`. La plantilla está en [`backend/.env.example`](backend/.env.example):
+| Nombre | Tipo | Valor |
+| --- | --- | --- |
+| `SUPABASE_URL` | Text | `https://<proyecto>.supabase.co` |
+| `SUPABASE_SECRET_KEY` | Secret | Clave `sb_secret_...` de Supabase |
 
-| Variable | Descripción |
-| --- | --- |
-| `DJANGO_SECRET_KEY` | Clave secreta de Django |
-| `DJANGO_DEBUG` | `True` en desarrollo |
-| `SUPABASE_DB_*` | Nombre, usuario, contraseña, host y puerto de PostgreSQL |
-| `SUPABASE_URL` / `SUPABASE_ANON_KEY` | Credenciales del proyecto Supabase |
+`keep_vars` en `wrangler.jsonc` evita que cada deploy borre estas variables.
 
-> El archivo `.env` está en `.gitignore` y no debe subirse nunca al repositorio.
+> La clave secreta salta las politicas RLS de Supabase: vive solo en el Worker y nunca llega al
+> navegador. Por eso el anti-trampas corre en el servidor.
 
 ## API
 
@@ -94,10 +67,35 @@ Se configuran en `backend/.env`. La plantilla está en [`backend/.env.example`](
 | `POST` | `/api/scores/start-session/` | Abre una sesión de juego y devuelve el mejor puntaje |
 | `POST` | `/api/scores/submit-result/` | Envía el resultado; el servidor lo valida antes de guardarlo |
 
-## Scripts del frontend
+## Base de datos
+
+Para un proyecto de Supabase nuevo, ejecuta `supabase/schema.sql` en el SQL Editor. Crea las
+tablas con el mismo esquema que usaba Django:
+
+- `scores_player` — `id`, `email` (único), `total_coins`, `best_score`, `created_at`
+- `scores_gamesession` — `id`, `player_id`, `started_at`, `ended_at`, `coins_reported`,
+  `score_reported`, `is_valid`, `rejection_reason`
+
+El script activa RLS sin politicas y concede permisos solo a `service_role`: el Worker (clave
+secreta) lee y escribe; con la clave publica no se puede leer ni modificar nada. Desde mayo de 2026
+Supabase no concede permisos automaticos en proyectos nuevos, por eso el script los declara.
+
+## Anti-trampas
+
+`worker/src/anticheat.ts` rechaza un resultado si las monedas superan lo alcanzable en el tiempo
+transcurrido (`MAX_COINS_PER_SECOND`, ajustable) o si el score es menor que las monedas. El tiempo
+se mide contra `started_at` guardado en la base, no contra lo que reporta el cliente.
+
+## Scripts (raiz)
 
 | Comando | Qué hace |
 | --- | --- |
-| `npm run dev` | Servidor de desarrollo con recarga en caliente |
-| `npm run build` | Compila TypeScript y genera el build de producción |
-| `npm run preview` | Sirve localmente el build de producción |
+| `npm run build` | Instala dependencias del juego y lo compila a `frontend/dist` |
+| `npm run dev` | Juego + API en local con Wrangler |
+| `npm run deploy` | Compila y despliega a mano (normalmente lo hace Cloudflare solo) |
+| `npm run typecheck` | Verifica los tipos del Worker |
+
+## Sobre `backend/`
+
+El proyecto empezó con una API en Django. Se migró a un Worker para que todo viva en Cloudflare.
+El código de Django queda en el repo como referencia; ya no se despliega.

@@ -1,13 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
+    "target": "es2022",
+    "module": "esnext",
     "lib": ["ES2022"],
     "types": ["@cloudflare/workers-types"],
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
     "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": ["src"]
 }
