@@ -10,7 +10,7 @@ import { COLORS, CSS, PIXEL_FONT, hex } from "../theme";
 import { ensureTextures, OBSTACLE_KEYS, preloadDesignAssets, recordBannerTexture } from "../textures";
 import { addScanlines, addScreenFrame, borderedPanel } from "../ui";
 import { startSession, submitResult, type SubmitResult } from "../../api/scores";
-import { startMusic, musicToggle } from "../music";
+import { restartMusic, musicToggle } from "../music";
 import { playCoin, playHit } from "../sound";
 
 const OBSTACLE_TOP_ZONE_Y = 200;
@@ -158,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     this.buildHud();
-    startMusic(this); // por si la descarga no había terminado al dar JUGAR
+    restartMusic(this); // cada partida arranca la pista desde el principio
     musicToggle(this, GAME_WIDTH - 52, 46); // bajo CATCOINS / SCORE
     addScanlines(this);
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");

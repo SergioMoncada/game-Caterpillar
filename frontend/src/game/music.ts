@@ -14,8 +14,10 @@ const VOLUME = 0.5;
 /** Crédito de la pista, se muestra junto a los avisos legales del Game Over */
 export const MUSIC_CREDIT = 'Música: "Instrumental 1 (Trap Vibe)" – CAT x JBEAT. Todos los derechos reservados.';
 
+type Track = Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound;
+
 function track(scene: Phaser.Scene) {
-  return scene.sound.get(KEY) as Phaser.Sound.WebAudioSound | Phaser.Sound.HTML5AudioSound | null;
+  return scene.sound.get(KEY) as Track | null;
 }
 
 /** Deja la pista lista en memoria sin reproducirla (se llama desde el menú). */
@@ -26,14 +28,22 @@ export function preloadMusic(scene: Phaser.Scene) {
 }
 
 /**
- * Arranca la música si no está sonando. Se llama al empezar la partida y en cada escena
- * siguiente: si el jugador cambió de escena antes de que terminara la descarga, se reintenta.
+ * Arranca la música si no está sonando (la continúa si ya venía de otra escena).
+ * Si la descarga no ha terminado, la pista empieza apenas esté lista.
  */
-export function startMusic(scene: Phaser.Scene) {
-  if (track(scene)) return;
+export function startMusic(scene: Phaser.Scene, fromStart = false) {
+  const current = track(scene);
+  if (current?.isPlaying && !fromStart) return;
 
   const play = () => {
-    if (track(scene)) return;
+    const existing = track(scene);
+    if (existing) {
+      if (existing.isPlaying && !fromStart) return;
+      existing.stop(); // play() de una pista detenida arranca desde el principio
+      existing.setMute(isMuted());
+      existing.play();
+      return;
+    }
     const music = scene.sound.add(KEY, { loop: true, volume: VOLUME });
     music.setMute(isMuted());
     // Si el navegador todavía no deja sonar audio, Phaser lo arranca con el primer toque del jugador
@@ -47,6 +57,16 @@ export function startMusic(scene: Phaser.Scene) {
   scene.load.audio(KEY, URL);
   scene.load.once(`filecomplete-audio-${KEY}`, play);
   if (!scene.load.isLoading()) scene.load.start();
+}
+
+/** Cada partida empieza con la pista desde el principio (también al dar JUGAR DE NUEVO). */
+export function restartMusic(scene: Phaser.Scene) {
+  startMusic(scene, true);
+}
+
+/** Silencio en el menú: la música queda esperando a que empiece la siguiente partida. */
+export function stopMusic(scene: Phaser.Scene) {
+  track(scene)?.stop();
 }
 
 /**
