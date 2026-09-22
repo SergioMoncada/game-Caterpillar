@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_WIDTH, GAME_HEIGHT } from "../constants";
+import { GAME_WIDTH, GAME_HEIGHT, CENTER_OFFSET_Y } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, recordBannerTexture } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton, borderedPanel, catLegalFooter, layeredText } from "../ui";
@@ -30,9 +30,9 @@ export default class GameOverScene extends Phaser.Scene {
 
     // ── Logo CAT + aviso legal, pegados al borde inferior (sobre la franja de precaución) ──
     // Se construye primero: el resto del layout se reparte en el espacio que queda arriba.
-    catLegalFooter(this, GAME_HEIGHT - 26);
+    catLegalFooter(this, GAME_HEIGHT - 26 - CENTER_OFFSET_Y);
 
-    let y = 64;
+    let y = 64 + CENTER_OFFSET_Y;
 
     // ── GAME OVER con glitch ──
     const title = layeredText(

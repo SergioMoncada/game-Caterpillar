@@ -17,8 +17,14 @@ function fitHeight() {
 
 export const GAME_HEIGHT = fitHeight();
 
+/**
+ * Menú y Game Over están diseñados para 720 de alto: en pantallas más altas su contenido
+ * se baja la mitad del espacio extra, para que quede centrado con el mismo aire arriba y abajo.
+ */
+export const CENTER_OFFSET_Y = Math.round((GAME_HEIGHT - BASE_HEIGHT) / 2);
+
 /** Línea de horizonte del menú: separa el cielo del piso en perspectiva */
-export const MENU_HORIZON_Y = 230;
+export const MENU_HORIZON_Y = 230 + CENTER_OFFSET_Y;
 
 export const CAR_START_SPEED = 200;       // px/segundo, velocidad de scroll base
 export const SPEED_INCREASE_PER_SEC = 4;  // cuánto sube la velocidad cada segundo

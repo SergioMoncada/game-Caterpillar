@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y } from "../constants";
+import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y, CENTER_OFFSET_Y } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
@@ -49,7 +49,7 @@ export default class MenuScene extends Phaser.Scene {
     this.buildLogoPlate();
 
     // ── Título "STEP UP YOUR GAME" (asset de la diseñadora, ya trae contorno y sombra) ──
-    const TITLE_TOP = 250, TITLE_W = 304;
+    const TITLE_TOP = 250 + CENTER_OFFSET_Y, TITLE_W = 304;
     const titleTex = this.textures.get("titulo-menu").getSourceImage();
     const titleH = Math.round(TITLE_W * (titleTex.height / titleTex.width));
     const title = this.add.image(GAME_WIDTH / 2, TITLE_TOP, "titulo-menu")
@@ -93,7 +93,7 @@ export default class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5, 0);
 
     // ── Zapato rebotando ── (jugador_menu.png: 360px = 120u)
-    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 45, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
+    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 45 - CENTER_OFFSET_Y, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
     this.tweens.add({ targets: jeep, y: jeep.y - 3, duration: 500, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
@@ -104,7 +104,7 @@ export default class MenuScene extends Phaser.Scene {
    * enmarcada como los botones arcade: borde negro, "profundidad" amarilla oscura y un halo escalonado plano.
    */
   private buildLogoPlate() {
-    const W = 168, H = Math.round(W / LOGO_RATIO), cx = GAME_WIDTH / 2, cy = 122, DEPTH_PX = 6;
+    const W = 168, H = Math.round(W / LOGO_RATIO), cx = GAME_WIDTH / 2, cy = 122 + CENTER_OFFSET_Y, DEPTH_PX = 6;
     const halo = this.add.graphics().setDepth(3);
     [[36, 0.05], [22, 0.08], [10, 0.14]].forEach(([spread, alpha]) => {
       halo.fillStyle(COLORS.yellow, alpha).fillRect(cx - W / 2 - spread, cy - H / 2 - spread, W + spread * 2, H + spread * 2 + DEPTH_PX);
