@@ -20,7 +20,7 @@
     {
       "binding": "DB",
       "database_name": "game-caterpillar-db",
-      "database_id": "PENDIENTE-PEGAR-ID-DE-D1",
+      "database_id": "0e61658a-5f54-43e5-91aa-4ec127c29cc2",
       "migrations_dir": "migrations"
     }
   ]
