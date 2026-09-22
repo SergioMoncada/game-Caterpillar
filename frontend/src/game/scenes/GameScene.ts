@@ -17,7 +17,7 @@ const DESPAWN_Y = GAME_HEIGHT + 60;
 type ArcadeImage = Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
 
 // Tamaños en juego según la spec (u); las texturas vienen a 3x
-const PLAYER_SIZE = 72;
+const PLAYER_SIZE = 106; // ~78% del ancho de un carril (400 / 3 ≈ 133px)
 const OBSTACLE_SIZE = 64;
 const COIN_SIZE = 32;
 const TEX_SCALE = 3;

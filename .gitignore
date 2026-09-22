@@ -32,3 +32,16 @@ pnpm-debug.log*
 Thumbs.db
 *.suo
 *.sw?
+
+# ---- Cloudflare / Wrangler ----
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# ---- Documentos comerciales (el repo es público) ----
+Cotizacion_*.docx
+Cotizacion_*.pdf
+
+# ---- Herramientas locales de Claude (skills genéricas, ~7 MB de fuentes) ----
+.claude/skills/
