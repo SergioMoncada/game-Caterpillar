@@ -30,9 +30,9 @@ export default class GameOverScene extends Phaser.Scene {
 
     // ── Logo CAT + aviso legal, pegados al borde inferior (sobre la franja de precaución) ──
     // Se construye primero: el resto del layout se reparte en el espacio que queda arriba.
-    catLegalFooter(this, GAME_HEIGHT - 26 - CENTER_OFFSET_Y);
+    catLegalFooter(this, GAME_HEIGHT - 26 - CENTER_OFFSET_Y, 136);
 
-    let y = 64 + CENTER_OFFSET_Y;
+    let y = 52 + CENTER_OFFSET_Y;
 
     // ── GAME OVER con glitch ──
     const title = layeredText(
@@ -99,15 +99,18 @@ export default class GameOverScene extends Phaser.Scene {
     this.add.text(cx, y, `MEJOR PUNTAJE ANTERIOR: ${previousBest}`, {
       fontFamily: PIXEL_FONT, fontSize: "9px", color: CSS.muted,
     }).setOrigin(0.5, 0);
-    y += 9 + 14;
+    y += 9 + 20;
 
-    // Volver al menú (para cambiar de correo)
-    const menuLink = this.add.text(cx, y, "◂ MENÚ PRINCIPAL", {
-      fontFamily: PIXEL_FONT, fontSize: "8px", color: CSS.muted,
-    }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
-    menuLink.on("pointerover", () => menuLink.setColor(CSS.yellow));
-    menuLink.on("pointerout", () => menuLink.setColor(CSS.muted));
-    menuLink.on("pointerup", () => this.leaveTo("MenuScene"));
+    // Volver al menú (para cambiar de correo): botón secundario, más chico y blanco para no competir con "jugar de nuevo"
+    arcadeButton(
+      this, cx, y, "MENÚ PRINCIPAL",
+      {
+        fontSize: 10, padX: 20, padY: 11,
+        fill: COLORS.black, border: COLORS.white, textColor: CSS.white,
+        depthColor: 0x555555,
+      },
+      () => this.leaveTo("MenuScene")
+    );
 
     // ENTER / ESPACIO = jugar de nuevo
     const keyboard = this.input.keyboard;
