@@ -6,6 +6,11 @@
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
 
+  // Cloudflare for SaaS: todo el trafico de la zona catgamesergio.com (incluido el
+  // fallback juegos.catgamesergio.com y el subdominio del cliente, que llega por CNAME
+  // como custom hostname) lo atiende este Worker.
+  "routes": [{ "pattern": "*/*", "zone_name": "catgamesergio.com" }],
+
   // El mismo Worker sirve el juego (frontend/dist) y la API.
   // Solo las rutas /api/* ejecutan codigo; lo demas son archivos estaticos.
   "assets": {
