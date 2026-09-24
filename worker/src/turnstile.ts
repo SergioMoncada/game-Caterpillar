@@ -10,7 +10,10 @@ interface SiteverifyResponse {
 }
 
 export async function verifyTurnstile(token: string, secret: string, ip: string | null): Promise<boolean> {
-  if (!token || token.length > 2048) return false;
+  if (!token || token.length > 2048) {
+    console.warn("Turnstile: token vacío o demasiado largo", token.length);
+    return false;
+  }
 
   const form = new FormData();
   form.append("secret", secret);
@@ -18,8 +21,8 @@ export async function verifyTurnstile(token: string, secret: string, ip: string 
   if (ip) form.append("remoteip", ip);
 
   const res = await fetch(VERIFY_URL, { method: "POST", body: form });
-  if (!res.ok) return false;
-  const outcome = (await res.json()) as SiteverifyResponse;
-  if (!outcome.success) console.warn("Turnstile rechazado", outcome["error-codes"]);
+  // Siteverify responde 400 con los códigos de error en el cuerpo (p. ej. invalid-input-secret)
+  const outcome = (await res.json().catch(() => ({ success: false }))) as SiteverifyResponse;
+  if (!outcome.success) console.warn("Turnstile rechazado", res.status, outcome["error-codes"]);
   return outcome.success;
 }
