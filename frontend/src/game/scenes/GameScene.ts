@@ -10,6 +10,7 @@ import { COLORS, CSS, PIXEL_FONT, hex } from "../theme";
 import { ensureTextures, OBSTACLE_KEYS, preloadDesignAssets, recordBannerTexture } from "../textures";
 import { addScanlines, addScreenFrame, borderedPanel } from "../ui";
 import { startSession, submitResult, type SubmitResult } from "../../api/scores";
+import { AuthError } from "../../api/auth";
 import { restartMusic, musicToggle } from "../music";
 import { playCoin, playHit } from "../sound";
 
@@ -175,11 +176,15 @@ export default class GameScene extends Phaser.Scene {
     // Mientras tanto se muestran los controles; la partida arranca cuando hay sesión Y el jugador tocó.
     const session = (async () => {
       try {
-        const email = localStorage.getItem("playerEmail") ?? "invitado@test.com";
-        const res = await startSession(email);
+        const res = await startSession();
         this.sessionId = res.session_id ?? null;
         this.previousBest = res.best_score ?? 0;
       } catch (err) {
+        // Sin token o vencido: se vuelve al menú, donde el jugador entra de nuevo con su correo
+        if (err instanceof AuthError) {
+          if (this.sys.isActive()) this.scene.start("MenuScene");
+          return;
+        }
         console.error("No se pudo iniciar sesión de juego", err);
         this.sessionId = null;
         this.previousBest = 0;
@@ -619,7 +624,8 @@ export default class GameScene extends Phaser.Scene {
       }
       try {
         return await submitResult(this.sessionId, this.coinsCollected, this.score);
-      } catch {
+      } catch (err) {
+        if (err instanceof AuthError) return { status: "error", reason: "La sesión venció, vuelve a entrar desde el menú" };
         return { status: "error", reason: "No se pudo conectar con el servidor al guardar el resultado" };
       }
     };

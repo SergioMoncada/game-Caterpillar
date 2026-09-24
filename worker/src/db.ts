@@ -29,6 +29,13 @@ export class Database {
     return found.results[0];
   }
 
+  getPlayer(id: number): Promise<Player | null> {
+    return this.db
+      .prepare("SELECT id, email, total_coins, best_score FROM players WHERE id = ?")
+      .bind(id)
+      .first<Player>();
+  }
+
   async createSession(playerId: number): Promise<GameSession> {
     const created = await this.db
       .prepare("INSERT INTO game_sessions (player_id) VALUES (?) RETURNING id, player_id, started_at, ended_at")
