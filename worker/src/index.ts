@@ -117,7 +117,10 @@ export default {
 
     // Solo peticiones del propio juego y en JSON. Exigir application/json obliga a otros sitios
     // a pasar por la verificación previa de CORS, que este Worker nunca aprueba.
-    if (!isAllowedOrigin(request, url, env)) return json({ status: "error", reason: "origen no permitido" }, 403);
+    if (!isAllowedOrigin(request, url, env)) {
+      console.warn("Origen rechazado", request.headers.get("Origin"), "esperado", url.origin);
+      return json({ status: "error", reason: "origen no permitido" }, 403);
+    }
     const contentType = request.headers.get("Content-Type") ?? "";
     if (!/^application\/json\s*(;|$)/i.test(contentType)) {
       return json({ status: "error", reason: "se requiere Content-Type: application/json" }, 415);
