@@ -4,6 +4,8 @@ import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
 import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
 import { preloadMusic, stopMusic, musicToggle } from "../music";
+import { login, RateLimitError } from "../../api/auth";
+import { loadTurnstile } from "../../api/turnstile";
 
 const HORIZON_Y = MENU_HORIZON_Y;
 // Neón claro: la grilla ahora corre sobre un piso aclarado, así que necesita ser más brillante
@@ -100,6 +102,7 @@ export default class MenuScene extends Phaser.Scene {
     stopMusic(this);    // si venimos del Game Over, el menú queda en silencio
     preloadMusic(this); // se descarga mientras el jugador escribe el correo; suena al empezar la partida
     musicToggle(this, GAME_WIDTH - 14, 26);
+    loadTurnstile().catch(() => {}); // se descarga ya; si falla, se reintenta al tocar Jugar
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
   }
@@ -143,6 +146,24 @@ export default class MenuScene extends Phaser.Scene {
 
     this.starting = true;
     localStorage.setItem("playerEmail", email);
+    this.hint.setText("VERIFICANDO...").setColor(HINT_COLOR);
+    void this.enter(email);
+  }
+
+  /** Pasa Turnstile y pide el JWT; solo con el token en mano arranca la partida. */
+  private async enter(email: string) {
+    try {
+      await login(email);
+    } catch (err) {
+      console.error("No se pudo iniciar sesión", err);
+      if (!this.sys.isActive()) return;
+      this.starting = false;
+      this.hint
+        .setText(err instanceof RateLimitError ? "DEMASIADOS INTENTOS, ESPERA 1 MIN" : "NO SE PUDO VERIFICAR, REINTENTA")
+        .setColor(CSS.red);
+      return;
+    }
+    if (!this.sys.isActive()) return;
     this.cameras.main.fadeOut(180, 10, 10, 18);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("GameScene"));
   }

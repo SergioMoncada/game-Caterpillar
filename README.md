@@ -26,12 +26,14 @@ carro-game/
 
 ```bash
 npm install                # dependencias del Worker (en la raiz)
+cp .dev.vars.example .dev.vars   # y rellena JWT_SECRET (el archivo explica como generarla)
 npm run db:migrate:local   # crea las tablas en la base D1 local (.wrangler/)
 npm run build              # compila el juego a frontend/dist
 npm run dev                # juego + API en http://127.0.0.1:8787
 ```
 
-En local no hace falta ninguna credencial: Wrangler simula D1 en `.wrangler/state`.
+En local Wrangler simula D1 en `.wrangler/state` y Turnstile usa las claves de prueba de Cloudflare
+(siempre aprueban), así que no hace falta ninguna cuenta.
 
 Para trabajar en el juego con recarga en caliente, deja `npm run dev` corriendo en la raiz y en
 otra terminal ejecuta `cd frontend && npm run dev` (http://localhost:5173). Vite reenvia `/api` al Worker.
@@ -52,15 +54,35 @@ Configuracion en *Workers & Pages → game-caterpillar → Settings → Build*:
 | Root directory | *(vacio)* |
 | Production branch | `main` |
 
-No hay variables ni secretos: el Worker accede a la base por el binding `DB` de `wrangler.jsonc`,
-y la base no tiene ninguna URL publica.
+El Worker accede a la base por el binding `DB` de `wrangler.jsonc`, y la base no tiene ninguna URL
+publica. Antes del primer despliegue con JWT y Turnstile:
+
+1. Crear el widget de Turnstile en el panel (*Turnstile → Add widget*), modo **Invisible** o
+   **Managed**, con los hostnames `catgamesergio.com` y los subdominios de los clientes.
+2. Cargar los secretos del Worker (no se guardan en el repo):
+   ```bash
+   npx wrangler secret put JWT_SECRET        # 32+ caracteres aleatorios
+   npx wrangler secret put TURNSTILE_SECRET  # clave secreta del widget
+   ```
+3. En *Settings → Build → Variables* agregar `VITE_TURNSTILE_SITE_KEY` con la clave del sitio del
+   widget (es publica; el juego la necesita al compilar).
 
 ## API
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
+| `POST` | `/api/auth/login` | Correo + token de Turnstile → JWT del jugador (vigente 2 h) |
 | `POST` | `/api/scores/start-session/` | Abre una sesión de juego y devuelve el mejor puntaje |
 | `POST` | `/api/scores/submit-result/` | Envía el resultado; el servidor lo valida antes de guardarlo |
+
+Seguridad de la API:
+
+- Solo acepta `POST` con `Content-Type: application/json` y un `Origin` igual al dominio que recibe
+  la petición (el juego y la API siempre van juntos).
+- `/api/scores/*` exige `Authorization: Bearer <JWT>` (HS256, firmado con `JWT_SECRET`). Un jugador
+  solo puede cerrar sus propias partidas.
+- Límite de peticiones: 60/min por IP en el login y 20/min por jugador en `/api/scores/*`.
+- El antitrampas limita monedas y puntaje por segundo de partida (`worker/src/anticheat.ts`).
 
 ## Base de datos (D1)
 

@@ -1,0 +1,12 @@
+# Copia este archivo como .dev.vars para `npm run dev`. El .dev.vars real no se sube al repo.
+# En produccion estos valores se cargan con `npx wrangler secret put <NOMBRE>`.
+
+# Clave para firmar los JWT: minimo 32 caracteres aleatorios.
+# Genera una con: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+JWT_SECRET=
+
+# Clave secreta de prueba de Turnstile: siempre aprueba (solo desarrollo).
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+
+# El servidor de Vite (cd frontend && npm run dev) llama a la API desde otro origen.
+EXTRA_ALLOWED_ORIGINS=http://localhost:5173
