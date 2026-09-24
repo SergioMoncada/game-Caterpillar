@@ -21,11 +21,8 @@ export async function verifyTurnstile(token: string, secret: string, ip: string 
   if (ip) form.append("remoteip", ip);
 
   const res = await fetch(VERIFY_URL, { method: "POST", body: form });
-  if (!res.ok) {
-    console.warn("Turnstile: siteverify respondió", res.status);
-    return false;
-  }
-  const outcome = (await res.json()) as SiteverifyResponse;
-  if (!outcome.success) console.warn("Turnstile rechazado", outcome["error-codes"]);
+  // Siteverify responde 400 con los códigos de error en el cuerpo (p. ej. invalid-input-secret)
+  const outcome = (await res.json().catch(() => ({ success: false }))) as SiteverifyResponse;
+  if (!outcome.success) console.warn("Turnstile rechazado", res.status, outcome["error-codes"]);
   return outcome.success;
 }
