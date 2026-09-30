@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT } from "./constants";
-import { PIXEL_FONT } from "./theme";
+import { COLORS, PIXEL_FONT } from "./theme";
 import { playClick } from "./sound";
 
 export interface TextShadow {
@@ -202,3 +202,40 @@ export function borderedPanel(
   return g;
 }
 
+
+/**
+ * Página de CAT a la que vuelve el botón de casa. Se define al compilar con VITE_CAT_HOME_URL
+ * (Settings → Build → Variables en Cloudflare); sin ella se usa catlifestyle.co, la página donde va incrustado el juego.
+ */
+const CAT_HOME_URL = import.meta.env.VITE_CAT_HOME_URL || "https://www.catlifestyle.co/";
+
+/** Botón con icono de casa (mismo estilo que el de música) que lleva de vuelta al sitio de CAT (también desde un iframe). */
+export function homeButton(scene: Phaser.Scene, left: number, top: number, depth = 950) {
+  const SIZE = 34, BORDER = 3;
+  const g = scene.add.graphics().setDepth(depth);
+  g.fillStyle(COLORS.yellow, 1).fillRect(left, top, SIZE, SIZE);
+  g.fillStyle(COLORS.black, 1).fillRect(left + BORDER, top + BORDER, SIZE - BORDER * 2, SIZE - BORDER * 2);
+
+  // Casa en bloques de 2px: techo triangular, cuerpo y puerta
+  const cx = left + SIZE / 2, cy = top + SIZE / 2;
+  g.fillStyle(COLORS.yellow, 1);
+  g.fillTriangle(cx - 11, cy - 1, cx, cy - 11, cx + 11, cy - 1);
+  g.fillRect(cx - 8, cy - 1, 16, 11);
+  g.fillStyle(COLORS.black, 1).fillRect(cx - 2, cy + 3, 4, 7);
+
+  const zone = scene.add.zone(left - 6, top - 6, SIZE + 12, SIZE + 12)
+    .setOrigin(0, 0)
+    .setDepth(depth)
+    .setInteractive({ useHandCursor: true });
+  zone.on("pointerup", () => {
+    playClick(scene);
+    // Si el juego está incrustado en la web de CAT (iframe) se navega la ventana superior;
+    // fuera de un iframe window.top es la propia ventana. Si el iframe lo prohíbe (sandbox), se navega el marco.
+    try {
+      (window.top ?? window).location.assign(CAT_HOME_URL);
+    } catch {
+      window.location.assign(CAT_HOME_URL);
+    }
+  });
+  return zone;
+}
