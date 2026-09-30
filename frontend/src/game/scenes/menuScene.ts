@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y, CENTER_OFFSET_Y } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
-import { addCautionStrips, addScreenFrame, arcadeButton, homeButton } from "../ui";
+import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
 import { preloadMusic, stopMusic, musicToggle } from "../music";
 import { login, RateLimitError } from "../../api/auth";
 import { loadTurnstile } from "../../api/turnstile";
@@ -16,6 +16,8 @@ const HINT_TEXT = "TOCA IZQ / DER PARA MOVERTE";
 // El gris apagado de la paleta (CSS.muted) se pensó para el fondo casi negro original; sobre el
 // piso aclarado se lava, así que el menú usa un lavanda claro que sigue leyéndose como secundario.
 const HINT_COLOR = "#c9b8e8";
+// Documento de términos y condiciones (URL o ruta, p. ej. "/terminos.pdf"). Vacío = el texto aún no enlaza a nada.
+const TERMS_URL = "";
 const LOGO_RATIO = 720 / 535.53; // viewBox de logo_cat_color.svg
 
 export default class MenuScene extends Phaser.Scene {
@@ -24,6 +26,8 @@ export default class MenuScene extends Phaser.Scene {
   private gridOffset = 0;
   private hint!: Phaser.GameObjects.Text;
   private starting = false;
+  private termsEl!: HTMLInputElement;
+  private playButton!: ReturnType<typeof arcadeButton>;
 
   constructor() {
     super("MenuScene");
@@ -79,8 +83,30 @@ export default class MenuScene extends Phaser.Scene {
     });
     this.emailInputEl.addEventListener("input", () => this.resetHint());
 
+    // ── Términos y condiciones: hay que marcarlos para poder jugar ──
+    const termsTop = inputTop + 44 + 10;
+    const termsBox = document.createElement("label");
+    termsBox.className = "arcade-terms";
+    this.termsEl = document.createElement("input");
+    this.termsEl.type = "checkbox";
+    const termsText = document.createElement("span");
+    const link = document.createElement(TERMS_URL ? "a" : "span");
+    link.textContent = "términos y condiciones";
+    if (link instanceof HTMLAnchorElement) {
+      link.href = TERMS_URL;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+    termsText.append("Acepto los ", link);
+    termsBox.append(this.termsEl, termsText);
+    this.add.dom(GAME_WIDTH / 2, termsTop, termsBox).setOrigin(0.5, 0);
+    this.termsEl.addEventListener("change", () => {
+      this.updatePlayEnabled();
+      this.resetHint();
+    });
+
     // ── Botón JUGAR ──
-    const buttonTop = inputTop + 44 + 30;
+    const buttonTop = termsTop + 16 + 16;
     const playButton = arcadeButton(
       this, GAME_WIDTH / 2, buttonTop, "▶ JUGAR",
       {
@@ -90,19 +116,20 @@ export default class MenuScene extends Phaser.Scene {
       },
       () => this.tryStart()
     );
+    this.playButton = playButton;
+    this.updatePlayEnabled();
 
     this.hint = this.add.text(GAME_WIDTH / 2, buttonTop + playButton.height + 26, HINT_TEXT, {
       fontFamily: PIXEL_FONT, fontSize: "8px", color: HINT_COLOR,
     }).setOrigin(0.5, 0);
 
     // ── Zapato rebotando ── (jugador_menu.png: 360px = 120u)
-    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 45 - CENTER_OFFSET_Y, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
+    const jeep = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT - 50 - 33 - CENTER_OFFSET_Y, "jugador-menu").setDisplaySize(120, 120).setDepth(40);
     this.tweens.add({ targets: jeep, y: jeep.y - 3, duration: 500, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
 
     stopMusic(this);    // si venimos del Game Over, el menú queda en silencio
     preloadMusic(this); // se descarga mientras el jugador escribe el correo; suena al empezar la partida
     musicToggle(this, GAME_WIDTH - 14, 26);
-    homeButton(this, 14, 26);
     loadTurnstile().catch(() => {}); // se descarga ya; si falla, se reintenta al tocar Jugar
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
@@ -134,6 +161,10 @@ export default class MenuScene extends Phaser.Scene {
 
   private tryStart() {
     if (this.starting) return;
+    if (!this.termsEl.checked) {
+      this.hint.setText("ACEPTA LOS TÉRMINOS PARA JUGAR").setColor(CSS.red);
+      return;
+    }
     const email = this.emailInputEl.value.trim().toLowerCase();
 
     if (!EMAIL_RE.test(email)) {
@@ -167,6 +198,13 @@ export default class MenuScene extends Phaser.Scene {
     if (!this.sys.isActive()) return;
     this.cameras.main.fadeOut(180, 10, 10, 18);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("GameScene"));
+  }
+
+  /** El botón JUGAR se ve apagado hasta que se marcan los términos (tryStart también lo valida). */
+  private updatePlayEnabled() {
+    const alpha = this.termsEl.checked ? 1 : 0.4;
+    this.playButton.face.setAlpha(alpha);
+    this.playButton.shadow.setAlpha(alpha);
   }
 
   private resetHint() {
