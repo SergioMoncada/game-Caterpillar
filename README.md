@@ -58,7 +58,7 @@ El Worker accede a la base por el binding `DB` de `wrangler.jsonc`, y la base no
 publica. Antes del primer despliegue con JWT y Turnstile:
 
 1. Crear el widget de Turnstile en el panel (*Turnstile → Add widget*), modo **Invisible** o
-   **Managed**, con los hostnames `catgamesergio.com` y los subdominios de los clientes.
+   **Managed**, con el hostname `catlifestylegame.com`.
 2. Cargar los secretos del Worker (no se guardan en el repo):
    ```bash
    npx wrangler secret put JWT_SECRET        # 32+ caracteres aleatorios
