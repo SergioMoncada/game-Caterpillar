@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT, MENU_HORIZON_Y, CENTER_OFFSET_Y } from "../constants";
 import { COLORS, CSS, PIXEL_FONT } from "../theme";
 import { ensureTextures, preloadDesignAssets } from "../textures";
-import { addCautionStrips, addScreenFrame, arcadeButton } from "../ui";
+import { addCautionStrips, addScreenFrame, arcadeButton, homeButton } from "../ui";
 import { preloadMusic, stopMusic, musicToggle } from "../music";
 import { login, RateLimitError } from "../../api/auth";
 import { loadTurnstile } from "../../api/turnstile";
@@ -130,6 +130,7 @@ export default class MenuScene extends Phaser.Scene {
     stopMusic(this);    // si venimos del Game Over, el menú queda en silencio
     preloadMusic(this); // se descarga mientras el jugador escribe el correo; suena al empezar la partida
     musicToggle(this, GAME_WIDTH - 14, 26);
+    homeButton(this, 14, 26);
     loadTurnstile().catch(() => {}); // se descarga ya; si falla, se reintenta al tocar Jugar
 
     addScreenFrame(this, COLORS.yellow, "rgba(255,205,17,0.25)");
