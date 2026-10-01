@@ -7,8 +7,9 @@
   "observability": { "enabled": true },
 
   // El dominio catlifestylegame.com es exclusivo para este juego (sin subdominio: va en el
-  // apex, https://catlifestylegame.com), asi que todo el trafico de la zona va a este Worker.
-  "routes": [{ "pattern": "*/*", "zone_name": "catlifestylegame.com" }],
+  // apex, https://catlifestylegame.com). Se engancha como Custom Domain (en vez de un route
+  // con zone_name) para que Cloudflare gestione el registro DNS automaticamente.
+  "routes": [{ "pattern": "catlifestylegame.com", "custom_domain": true }],
 
   // El mismo Worker sirve el juego (frontend/dist) y la API.
   // Solo las rutas /api/* ejecutan codigo; lo demas son archivos estaticos.
