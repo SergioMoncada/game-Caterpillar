@@ -80,6 +80,32 @@ body {
   80% { translate: 3px 0; }
 }
 
+/* ── Casilla de términos y condiciones del menú ── */
+.arcade-terms {
+  white-space: nowrap;
+  color: #c9b8e8;
+  font-family: "Press Start 2P", monospace;
+  font-size: 7px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+/* Phaser fuerza display:block en el contenedor, así que la separación va como margen y no como gap */
+.arcade-terms input {
+  width: 16px;
+  height: 16px;
+  margin: 0 12px 0 0;
+  vertical-align: middle;
+  accent-color: #ffcd11;
+  cursor: pointer;
+}
+
+.arcade-terms a,
+.arcade-terms span span {
+  color: #ffcd11;
+  text-decoration: underline;
+}
+
 /* ── Casilla de Turnstile: solo aparece si Cloudflare necesita que el jugador confirme ── */
 .turnstile-box {
   position: fixed;
