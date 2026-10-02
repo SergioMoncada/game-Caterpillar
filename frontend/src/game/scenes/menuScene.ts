@@ -17,7 +17,7 @@ const HINT_TEXT = "TOCA IZQ / DER PARA MOVERTE";
 // piso aclarado se lava, así que el menú usa un lavanda claro que sigue leyéndose como secundario.
 const HINT_COLOR = "#c9b8e8";
 // Documento de términos y condiciones (URL o ruta, p. ej. "/terminos.pdf"). Vacío = el texto aún no enlaza a nada.
-const TERMS_URL = "";
+const TERMS_URL = "/terminos-y-condiciones.pdf";
 const LOGO_RATIO = 720 / 535.53; // viewBox de logo_cat_color.svg
 
 export default class MenuScene extends Phaser.Scene {
