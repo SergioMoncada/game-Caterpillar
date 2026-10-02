@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { GAME_WIDTH, GAME_HEIGHT } from "./constants";
-import { COLORS, PIXEL_FONT } from "./theme";
+import { COLORS, CSS, PIXEL_FONT } from "./theme";
 import { playClick } from "./sound";
 
 export interface TextShadow {
@@ -209,11 +209,25 @@ export function borderedPanel(
  */
 const CAT_HOME_URL = import.meta.env.VITE_CAT_HOME_URL || "https://www.catlifestyle.co/";
 
-/** Botón con icono de casa (mismo estilo que el de música) que lleva de vuelta al sitio de CAT (también desde un iframe). */
+/**
+ * Botón "TIENDA CAT" que lleva de vuelta al sitio de CAT (también desde un iframe). Va relleno de amarillo
+ * (invertido respecto al de música) con rótulo y un halo que pulsa, para que se lea como acción principal.
+ */
 export function homeButton(scene: Phaser.Scene, left: number, top: number, depth = 950) {
-  const SIZE = 34, BORDER = 3;
+  const SIZE = 34, BORDER = 3, GLOW = 4;
+  const label = scene.add.text(0, 0, "TIENDA CAT", {
+    fontFamily: PIXEL_FONT, fontSize: "8px", color: CSS.black,
+  }).setDepth(depth + 1).setOrigin(0, 0.5);
+  const width = SIZE + 4 + label.width + 12;
+  label.setPosition(left + SIZE + 4, top + SIZE / 2 + 1);
+
+  const glow = scene.add.graphics().setDepth(depth - 1);
+  glow.fillStyle(COLORS.yellow, 1).fillRect(left - GLOW, top - GLOW, width + GLOW * 2, SIZE + GLOW * 2);
+  scene.tweens.add({ targets: glow, alpha: { from: 0.12, to: 0.5 }, duration: 700, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+
   const g = scene.add.graphics().setDepth(depth);
-  g.fillStyle(COLORS.yellow, 1).fillRect(left, top, SIZE, SIZE);
+  g.fillStyle(COLORS.black, 1).fillRect(left - 2, top - 2, width + 4, SIZE + 4);
+  g.fillStyle(COLORS.yellow, 1).fillRect(left, top, width, SIZE);
   g.fillStyle(COLORS.black, 1).fillRect(left + BORDER, top + BORDER, SIZE - BORDER * 2, SIZE - BORDER * 2);
 
   // Casa en bloques de 2px: techo triangular, cuerpo y puerta
@@ -223,7 +237,7 @@ export function homeButton(scene: Phaser.Scene, left: number, top: number, depth
   g.fillRect(cx - 8, cy - 1, 16, 11);
   g.fillStyle(COLORS.black, 1).fillRect(cx - 2, cy + 3, 4, 7);
 
-  const zone = scene.add.zone(left - 6, top - 6, SIZE + 12, SIZE + 12)
+  const zone = scene.add.zone(left - 6, top - 6, width + 12, SIZE + 12)
     .setOrigin(0, 0)
     .setDepth(depth)
     .setInteractive({ useHandCursor: true });
